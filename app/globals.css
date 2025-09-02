@@ -1,42 +1,81 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Import Leaflet and Leaflet Draw styles */
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-draw/dist/leaflet.draw.css';
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
+/* Basic reset to make the map full-screen */
+body, html, #__next {
+  margin: 0;
   padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+/* Style for the information box that displays coordinates */
+.info-box {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 18px;
+  border-radius: 25px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 1000; /* Ensure it's on top of the map */
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.info-box h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.info-box p {
   margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Fix for Leaflet Draw icons not appearing correctly with Next.js */
+.leaflet-draw-toolbar a {
+  background-image: url('/spritesheet.png');
+  background-repeat: no-repeat;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+
+/* Style for our custom button that starts the drawing process */
+.custom-draw-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 1000;
+  background-color: white;
+  color: #333;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 25px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+}
+
+.custom-draw-button:hover {
+  background-color: #f4f4f4;
+}
+
+/* Style for the button inside the info-box to reset the selection */
+.reset-button {
+  margin-top: 10px;
+  padding: 6px 10px;
+  width: 100%;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.reset-button:hover {
+  background-color: #0056b3;
 }
