@@ -16,7 +16,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// A custom component for our "Select Area" button
+// A custom component for the "Select Area" button
 const CustomDrawButton = () => {
   const map = useMap();
 
