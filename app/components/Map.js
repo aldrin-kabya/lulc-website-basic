@@ -3,12 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, FeatureGroup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-
-// We need to import the leaflet-draw CSS
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw'; 
 
-// Icon workaround from before, still needed
+// Icon workaround
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -16,15 +14,21 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// A custom component for the "Select Area" button
+// Tile Layer URLs and Attributions
+const tileLayers = {
+  default: {
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+  }
+};
+
 const CustomDrawButton = () => {
   const map = useMap();
-
-  const startDrawing = () => {
-    // Programmatically start the rectangle drawing tool
-    new L.Draw.Rectangle(map).enable();
-  };
-
+  const startDrawing = () => new L.Draw.Rectangle(map).enable();
   return (
     <button onClick={startDrawing} className="custom-draw-button">
       Select Area
@@ -32,63 +36,45 @@ const CustomDrawButton = () => {
   );
 };
 
-// Main Map Component
 export default function Map() {
   const [bounds, setBounds] = useState(null);
+  const [mapView, setMapView] = useState('default'); // NEW: State for map view
   const featureGroupRef = useRef(null);
 
   const handleDrawCreated = (e) => {
     const layer = e.layer;
-
-    // Clear previous layers
-    if (featureGroupRef.current) {
-      featureGroupRef.current.clearLayers();
-    }
-
-    // Add the new layer
+    if (featureGroupRef.current) featureGroupRef.current.clearLayers();
     featureGroupRef.current.addLayer(layer);
-
-    // Get bounds and update state
     const drawnBounds = layer.getBounds();
     const newBounds = {
-      topLeft: {
-        lat: drawnBounds.getNorthWest().lat,
-        lng: drawnBounds.getNorthWest().lng,
-      },
-      bottomRight: {
-        lat: drawnBounds.getSouthEast().lat,
-        lng: drawnBounds.getSouthEast().lng,
-      },
+      topLeft: { lat: drawnBounds.getNorthWest().lat, lng: drawnBounds.getNorthWest().lng },
+      bottomRight: { lat: drawnBounds.getSouthEast().lat, lng: drawnBounds.getSouthEast().lng },
     };
     setBounds(newBounds);
   };
 
-  // Function to reset the state and clear the map
   const clearSelection = () => {
-    if (featureGroupRef.current) {
-      featureGroupRef.current.clearLayers();
-    }
+    if (featureGroupRef.current) featureGroupRef.current.clearLayers();
     setBounds(null);
   };
 
-  // Component to handle map events
+  // Function to toggle the map view
+  const toggleMapView = () => {
+    setMapView(currentView => currentView === 'default' ? 'satellite' : 'default');
+  };
+
   const MapEvents = () => {
     const map = useMap();
     useEffect(() => {
       map.on(L.Draw.Event.CREATED, handleDrawCreated);
-
-      // Cleanup function to remove the event listener
-      return () => {
-        map.off(L.Draw.Event.CREATED);
-      };
-    }, [map]); // Rerun if map instance changes
-
-    return null; // This component does not render anything
+      return () => { map.off(L.Draw.Event.CREATED); };
+    }, [map]);
+    return null;
   };
 
   return (
     <div>
-      {/* Conditionally render the info box ONLY when bounds exist */}
+      {/* Conditionally rendered info box */}
       {bounds && (
         <div className="info-box">
           <h3>Selected Area Coordinates</h3>
@@ -97,28 +83,40 @@ export default function Map() {
             <p><strong>Bottom Right:</strong> {bounds.bottomRight.lat.toFixed(4)}, {bounds.bottomRight.lng.toFixed(4)}</p>
           </div>
           <button onClick={clearSelection} className="reset-button">
-            Draw New Area
+            Select New Area
           </button>
         </div>
       )}
+
+      {/* Map View Toggle Button */}
+      <button 
+        onClick={toggleMapView} 
+        className="map-view-toggle"
+        title={mapView === 'default' ? 'Switch to Satellite View' : 'Switch to Default View'}
+      >
+        {mapView === 'default' ? 'Satellite' : 'Default'}
+      </button>
 
       <MapContainer 
         center={[23.6850, 90.3563]}
         zoom={7}
         style={{ height: '100vh', width: '100%' }}
       >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
+        {/*Conditionally render the TileLayer based on state */}
+        {mapView === 'default' ? (
+          <TileLayer
+            url={tileLayers.default.url}
+            attribution={tileLayers.default.attribution}
+          />
+        ) : (
+          <TileLayer
+            url={tileLayers.satellite.url}
+            attribution={tileLayers.satellite.attribution}
+          />
+        )}
         
-        {/* We now use a ref on FeatureGroup to manage layers */}
         <FeatureGroup ref={featureGroupRef} />
-
-        {/* This component handles the 'draw:created' event */}
         <MapEvents />
-
-        {/* Conditionally render our custom draw button ONLY when no bounds are set */}
         {!bounds && <CustomDrawButton />}
       </MapContainer>
     </div>

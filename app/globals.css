@@ -79,3 +79,38 @@ body, html, #__next {
 .reset-button:hover {
   background-color: #0056b3;
 }
+
+
+/* Style for the map view toggle button */
+.map-view-toggle {
+  position: absolute;
+  bottom: 20px;
+  left: 75px;
+  z-index: 1000;
+
+  width: 60px;
+  height: 60px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /*styles for text */
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+  padding: 0 4px;
+  line-height: 1.2;
+  text-align: center;
+
+  background-color: white;
+  color: #333;
+  border: 2px solid rgba(0,0,0,0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+}
+
+.map-view-toggle:hover {
+  background-color: #f4f4f4;
+}
