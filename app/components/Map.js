@@ -38,7 +38,7 @@ const CustomDrawButton = () => {
 
 export default function Map() {
   const [bounds, setBounds] = useState(null);
-  const [mapView, setMapView] = useState('default'); // NEW: State for map view
+  const [mapView, setMapView] = useState('default'); // State for map view
   const featureGroupRef = useRef(null);
 
   const handleDrawCreated = (e) => {
