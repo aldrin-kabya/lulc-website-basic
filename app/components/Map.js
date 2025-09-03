@@ -89,12 +89,19 @@ export default function Map() {
       )}
 
       {/* Map View Toggle Button */}
-      <button 
-        onClick={toggleMapView} 
+      <button
+        onClick={toggleMapView}
         className="map-view-toggle"
         title={mapView === 'default' ? 'Switch to Satellite View' : 'Switch to Default View'}
+        style={{
+          backgroundImage: `url(${mapView === 'default' ? '/satellite-icon.png' : '/default-icon.png'})`
+        }}
       >
-        {mapView === 'default' ? 'Satellite' : 'Default'}
+        <span className={
+          `toggle-text ${mapView === 'default' ? 'text-white' : 'text-black'}`
+        }>
+          {mapView === 'default' ? 'Satellite' : 'Default'}
+        </span>
       </button>
 
       <MapContainer 
