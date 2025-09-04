@@ -92,6 +92,32 @@ body, html, #__next {
   height: 70px;
 
   display: flex;
+  padding: 0;
+
+  background-color: white;
+  border: 3px solid transparent;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  cursor: pointer;
+  
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.map-view-toggle:hover {
+  border-color: #000;
+  box-shadow: 0 0 0 0px #000, 0 2px 8px rgba(0,0,0,0.5);
+}
+
+/* The inner container for the background image */
+.toggle-bg {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+
+  border-radius: 8px;
+  overflow: hidden;
+
+  display: flex;
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 6px;
@@ -99,18 +125,6 @@ body, html, #__next {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
-  border: 3px solid transparent; 
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  cursor: pointer;
-  overflow: hidden;
-
-  transition: border-color 0.2s ease-in-out;
-}
-
-.map-view-toggle:hover {
-  border-color: #000;
 }
 
 .toggle-text {
