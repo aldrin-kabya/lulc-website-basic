@@ -93,17 +93,17 @@ export default function Map() {
         </div>
       )}
       
-      <div className="map-controls-container">
+      {/* --- NEW, RESTRUCTURED CONTROLS --- */}
+      <div className="map-layer-controls">
+        {/* The main button that is always visible */}
         <button
           onClick={toggleMapView}
-          className="map-control-button"
-          title={mapView === 'default' ? 'Switch to Satellite View' : 'Switch to Default View'}
+          className="map-type-button"
+          // title={mapView === 'default' ? 'Switch to Satellite View' : 'Switch to Default View'}
         >
           <div 
             className="toggle-bg"
-            style={{
-              backgroundImage: `url(${mapView === 'default' ? '/satellite-icon.png' : '/default-icon.png'})`
-            }}
+            style={{ backgroundImage: `url(${mapView === 'default' ? '/satellite-icon.png' : '/default-icon.png'})` }}
           >
             <span className={`toggle-text ${mapView === 'default' ? 'text-white' : 'text-black'}`}>
               {mapView === 'default' ? 'Satellite' : 'Default'}
@@ -111,14 +111,18 @@ export default function Map() {
           </div>
         </button>
         
-        <button
-          onClick={toggleLulcView}
-          className="map-control-button lulc-toggle-button"
-          title={showLulc ? "Hide LULC Layer" : "Show LULC Layer"}
-          style={{ backgroundColor: showLulc ? '#6aa5e4ff' : 'white' }}
-        >
-          <span className="toggle-text text-black">LULC</span>
-        </button>
+        {/* The panel that appears on hover */}
+        <div className="layer-panel">
+          <button
+            onClick={toggleLulcView}
+            className={`layer-option-button ${showLulc ? 'active' : ''}`}
+            // title={showLulc ? "Hide All Classes Layer" : "Show All Classes Layer"}
+          >
+            <img src="/all-classes-icon.png" alt="All Classes Layer"/>
+            <span className="layer-option-text">All classes</span>
+          </button>
+          {/* You could add more buttons here in the future */}
+        </div>
       </div>
 
       <MapContainer 

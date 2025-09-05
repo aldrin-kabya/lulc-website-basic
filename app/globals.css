@@ -81,20 +81,22 @@ body, html, #__next {
 }
 
 
-/* NEW: A container for our map control buttons */
-.map-controls-container {
+/* --- NEW STYLES FOR THE HOVER MENU --- */
+
+/* 1. The main wrapper for the entire control unit (button + panel) */
+.map-layer-controls {
   position: absolute;
   bottom: 20px;
-  left: 75px; /* Position the container instead of the button */
+  left: 75px;
   z-index: 1000;
-  display: flex; /* Arrange buttons side-by-side */
-  gap: 10px; /* Add space between the buttons */
+  display: flex;
+  align-items: center; /* Align items to the bottom */
 }
 
-/* MODIFIED: Generic style for any button inside the container */
-.map-control-button {
-  width:70px;
-  height: 70px;
+/* 2. The main Satellite/Default button that is always visible */
+.map-type-button {
+  width: 80px;
+  height: 80px;
   display: flex;
   padding: 0;
   background-color: white;
@@ -102,12 +104,95 @@ body, html, #__next {
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   cursor: pointer;
-  transition: all 0.2s ease-in-out; /* Transition all properties */
+  transition: border-color 0.2s ease-in-out;
+  /* Ensure it sits on top of the panel */
+  z-index: 2; 
 }
 
-.map-control-button:hover {
+.map-type-button:hover {
   border-color: #000;
 }
+
+/* 3. The panel that appears on hover */
+.layer-panel {
+  display: flex;
+  align-items: center; 
+  background-color: white;
+  padding: 4px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  
+  /* Start slightly to the left of the main button */
+  margin-left: 10px;
+  padding-left: 10px; /* Add padding to account for the overlap */
+  padding-right: 10px;
+
+  /* Hide by default and set up transition */
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1; /* Sits behind the main button */
+}
+
+/* 4. The reveal logic: when hovering the PARENT, show the panel */
+.map-layer-controls:hover .layer-panel {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* 5. The small, individual buttons inside the panel */
+.layer-option-button {
+  display: flex;
+  flex-direction: column; /* Stack icon and text vertically */
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px; /* For a subtle background on hover */
+}
+
+/* On hover, highlight the image border */
+.layer-option-button:hover img {
+  border-color: #007b8b;
+}
+
+/* On hover, highlight the text */
+.layer-option-button:hover .layer-option-text {
+  color: #007b8b;
+}
+
+/* 6. The icon image inside the small button */
+.layer-option-button img {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  border: 2px solid transparent; /* Default transparent border */
+  transition: border-color 0.2s ease;
+}
+
+/* 7. The text label below the small icon */
+.layer-option-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5a5a5a;
+  transition: color 0.2s ease;
+}
+
+/* 8. The "active" state styles, inspired by your image */
+.layer-option-button.active img {
+  border-color: #007b8b; /* Blue border on the icon */
+}
+
+.layer-option-button.active .layer-option-text {
+  color: #007b8b; /* Blue text */
+  font-weight: 500;
+}
+
+
 
 /* The inner container for the background image */
 .toggle-bg {
@@ -125,25 +210,6 @@ body, html, #__next {
   background-repeat: no-repeat;
 }
 
-/* NEW: Style for the LULC button */
-.lulc-toggle-button {
-  /* Hide by default */
-  opacity: 0;
-  transform: translateX(-20px); /* Start slightly to the left */
-  pointer-events: none; /* Make it unclickable when hidden */
-  
-  /* Center the text */
-  align-items: center;
-  justify-content: center;
-}
-
-/* REVEAL on container hover */
-.map-controls-container:hover .lulc-toggle-button {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto; /* Make it clickable when visible */
-}
-
 /* Text styles */
 .toggle-text {
   font-size: 11px;
@@ -151,9 +217,9 @@ body, html, #__next {
 }
 .text-white {
   color: white;
-  text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 3px 3px 2px rgba(0, 0, 0, 0.7);
 }
 .text-black {
   color: #333;
-  text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.7);
+  text-shadow: 3px 3px 2px rgba(255, 255, 255, 0.7);
 }
