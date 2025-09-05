@@ -177,11 +177,11 @@ export default function Map() {
 
         {/* --- CONDITIONAL RENDERING BASED ON THE SINGLE STATE --- */}
         {activeLulcLayer === 'all' && <TileLayer url="/dhaka_lulc_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC All Classes" />}
-        {activeLulcLayer === 'farmland' && <TileLayer url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Farmland" />}
-        {/* {activeLulcLayer === 'water' && <TileLayer url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Water" />}
-        {activeLulcLayer === 'forest' && <TileLayer url="/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Forest" />}
-        {activeLulcLayer === 'built-up' && <TileLayer url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Built-Up" />}
-        {activeLulcLayer === 'meadow' && <TileLayer url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Meadow" />} */}
+        {activeLulcLayer === 'farmland' && <TileLayer url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Farmland" />}
+        {activeLulcLayer === 'water' && <TileLayer url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Water" />}
+        {activeLulcLayer === 'forest' && <TileLayer url="/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Forest" />}
+        {/* {activeLulcLayer === 'built-up' && <TileLayer url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Built-Up" />}
+        {activeLulcLayer === 'meadow' && <TileLayer url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Meadow" />} */}
         
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />
