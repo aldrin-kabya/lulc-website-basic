@@ -41,12 +41,7 @@ const CustomDrawButton = () => {
 export default function Map() {
   const [bounds, setBounds] = useState(null);
   const [mapView, setMapView] = useState('default');
-  const [showLulc, setShowLulc] = useState(false);
-  const [showFarmland, setShowFarmland] = useState(false);
-  const [showWater, setShowWater] = useState(false);
-  const [showForest, setShowForest] = useState(false);
-  const [showBuiltUp, setShowBuiltUp] = useState(false);
-  const [showMeadow, setShowMeadow] = useState(false);
+  const [activeLulcLayer, setActiveLulcLayer] = useState(null);
   const featureGroupRef = useRef(null);
 
   const handleDrawCreated = (e) => {
@@ -70,12 +65,9 @@ export default function Map() {
     setMapView(currentView => currentView === 'default' ? 'satellite' : 'default');
   };
 
-  const toggleLulcView = () => setShowLulc(current => !current);
-  const toggleFarmlandView = () => setShowFarmland(current => !current);
-  const toggleWaterView = () => setShowWater(current => !current);
-  const toggleForestView = () => setShowForest(current => !current);
-  const toggleBuiltUpView = () => setShowBuiltUp(current => !current);
-  const toggleMeadowView = () => setShowMeadow(current => !current);
+  const handleLayerToggle = (layerName) => {
+    setActiveLulcLayer(currentLayer => (currentLayer === layerName ? null : layerName));
+  };
 
   const MapEvents = () => {
     const map = useMap();
@@ -122,59 +114,53 @@ export default function Map() {
         {/* The panel that appears on hover */}
         <div className="layer-panel">
           <button
-            onClick={toggleLulcView}
-            className={`layer-option-button ${showLulc ? 'active' : ''}`}
-            // title={showLulc ? "Hide All Classes Layer" : "Show All Classes Layer"}
+            onClick={() => handleLayerToggle('all')}
+            className={`layer-option-button ${activeLulcLayer === 'all' ? 'active' : ''}`}
+            // title="Toggle All Classes Layer"
           >
             <img src="/all-classes-icon.png" alt="All Classes Layer"/>
             <span className="layer-option-text">All classes</span>
           </button>
-          
           <button
-            onClick={toggleFarmlandView}
-            className={`layer-option-button ${showFarmland ? 'active' : ''}`}
+            onClick={() => handleLayerToggle('farmland')}
+            className={`layer-option-button ${activeLulcLayer === 'farmland' ? 'active' : ''}`}
             // title="Toggle Farmland Layer"
           >
             <img src="/farmland-icon.png" alt="Farmland Layer"/>
             <span className="layer-option-text">Farmland</span>
           </button>
-
           <button
-            onClick={toggleWaterView}
-            className={`layer-option-button ${showWater ? 'active' : ''}`}
+            onClick={() => handleLayerToggle('water')}
+            className={`layer-option-button ${activeLulcLayer === 'water' ? 'active' : ''}`}
             // title="Toggle Water Layer"
           >
             <img src="/water-icon.png" alt="Water Layer"/>
             <span className="layer-option-text">Water</span>
           </button>
-
           <button
-            onClick={toggleForestView}
-            className={`layer-option-button ${showForest ? 'active' : ''}`}
+            onClick={() => handleLayerToggle('forest')}
+            className={`layer-option-button ${activeLulcLayer === 'forest' ? 'active' : ''}`}
             // title="Toggle Forest Layer"
           >
             <img src="/forest-icon.png" alt="Forest Layer"/>
             <span className="layer-option-text">Forest</span>
           </button>
-
           <button
-            onClick={toggleBuiltUpView}
-            className={`layer-option-button ${showBuiltUp ? 'active' : ''}`}
+            onClick={() => handleLayerToggle('built-up')}
+            className={`layer-option-button ${activeLulcLayer === 'built-up' ? 'active' : ''}`}
             // title="Toggle Built-Up Layer"
           >
             <img src="/built-up-icon.png" alt="Built-Up Layer"/>
             <span className="layer-option-text">Built-Up</span>
           </button>
-
           <button
-            onClick={toggleMeadowView}
-            className={`layer-option-button ${showMeadow ? 'active' : ''}`}
+            onClick={() => handleLayerToggle('meadow')}
+            className={`layer-option-button ${activeLulcLayer === 'meadow' ? 'active' : ''}`}
             // title="Toggle Meadow Layer"
           >
             <img src="/meadow-icon.png" alt="Meadow Layer"/>
             <span className="layer-option-text">Meadow</span>
           </button>
-
         </div>
       </div>
 
@@ -188,14 +174,14 @@ export default function Map() {
         ) : (
           <TileLayer url={tileLayers.satellite.url} attribution={tileLayers.satellite.attribution} />
         )}
-        {showLulc && (
-          <TileLayer
-            url="/dhaka_lulc_tiles/{z}/{x}/{y}.png"
-            tms={true} // IMPORTANT: gdal2tiles uses the TMS scheme
-            opacity={0.7}
-            attribution="LULC Dhaka"
-          />
-        )}
+
+        {/* --- CONDITIONAL RENDERING BASED ON THE SINGLE STATE --- */}
+        {activeLulcLayer === 'all' && <TileLayer url="/dhaka_lulc_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC All Classes" />}
+        {activeLulcLayer === 'farmland' && <TileLayer url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Farmland" />}
+        {/* {activeLulcLayer === 'water' && <TileLayer url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Water" />}
+        {activeLulcLayer === 'forest' && <TileLayer url="/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Forest" />}
+        {activeLulcLayer === 'built-up' && <TileLayer url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Built-Up" />}
+        {activeLulcLayer === 'meadow' && <TileLayer url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.8} attribution="LULC Meadow" />} */}
         
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />
