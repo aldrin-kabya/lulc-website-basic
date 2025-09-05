@@ -42,6 +42,11 @@ export default function Map() {
   const [bounds, setBounds] = useState(null);
   const [mapView, setMapView] = useState('default');
   const [showLulc, setShowLulc] = useState(false);
+  const [showFarmland, setShowFarmland] = useState(false);
+  const [showWater, setShowWater] = useState(false);
+  const [showForest, setShowForest] = useState(false);
+  const [showBuiltUp, setShowBuiltUp] = useState(false);
+  const [showMeadow, setShowMeadow] = useState(false);
   const featureGroupRef = useRef(null);
 
   const handleDrawCreated = (e) => {
@@ -65,9 +70,12 @@ export default function Map() {
     setMapView(currentView => currentView === 'default' ? 'satellite' : 'default');
   };
 
-  const toggleLulcView = () => {
-    setShowLulc(current => !current);
-  };
+  const toggleLulcView = () => setShowLulc(current => !current);
+  const toggleFarmlandView = () => setShowFarmland(current => !current);
+  const toggleWaterView = () => setShowWater(current => !current);
+  const toggleForestView = () => setShowForest(current => !current);
+  const toggleBuiltUpView = () => setShowBuiltUp(current => !current);
+  const toggleMeadowView = () => setShowMeadow(current => !current);
 
   const MapEvents = () => {
     const map = useMap();
@@ -121,7 +129,52 @@ export default function Map() {
             <img src="/all-classes-icon.png" alt="All Classes Layer"/>
             <span className="layer-option-text">All classes</span>
           </button>
-          {/* You could add more buttons here in the future */}
+          
+          <button
+            onClick={toggleFarmlandView}
+            className={`layer-option-button ${showFarmland ? 'active' : ''}`}
+            // title="Toggle Farmland Layer"
+          >
+            <img src="/farmland-icon.png" alt="Farmland Layer"/>
+            <span className="layer-option-text">Farmland</span>
+          </button>
+
+          <button
+            onClick={toggleWaterView}
+            className={`layer-option-button ${showWater ? 'active' : ''}`}
+            // title="Toggle Water Layer"
+          >
+            <img src="/water-icon.png" alt="Water Layer"/>
+            <span className="layer-option-text">Water</span>
+          </button>
+
+          <button
+            onClick={toggleForestView}
+            className={`layer-option-button ${showForest ? 'active' : ''}`}
+            // title="Toggle Forest Layer"
+          >
+            <img src="/forest-icon.png" alt="Forest Layer"/>
+            <span className="layer-option-text">Forest</span>
+          </button>
+
+          <button
+            onClick={toggleBuiltUpView}
+            className={`layer-option-button ${showBuiltUp ? 'active' : ''}`}
+            // title="Toggle Built-Up Layer"
+          >
+            <img src="/built-up-icon.png" alt="Built-Up Layer"/>
+            <span className="layer-option-text">Built-Up</span>
+          </button>
+
+          <button
+            onClick={toggleMeadowView}
+            className={`layer-option-button ${showMeadow ? 'active' : ''}`}
+            // title="Toggle Meadow Layer"
+          >
+            <img src="/meadow-icon.png" alt="Meadow Layer"/>
+            <span className="layer-option-text">Meadow</span>
+          </button>
+
         </div>
       </div>
 
