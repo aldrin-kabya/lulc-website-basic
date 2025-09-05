@@ -7,49 +7,6 @@ import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 
-// Imports for the modern GeoTIFF library
-import parseGeoraster from 'georaster';
-import GeoRasterLayer from 'georaster-layer-for-leaflet';
-
-// --- UPDATED GeoTIFF Layer Component ---
-const GeoTiffLayer = ({ url }) => {
-  const map = useMap();
-  // 2. CREATE A REF to hold the layer instance
-  const layerRef = useRef(null);
-
-  useEffect(() => {
-    fetch(url)
-      .then(response => response.arrayBuffer())
-      .then(arrayBuffer => {
-        parseGeoraster(arrayBuffer).then(georaster => {
-          
-          // 3. CHANGE OPACITY to a more transparent value (e.g., 0.6)
-          const newLayer = new GeoRasterLayer({
-            georaster: georaster,
-            opacity: 0.5, // You can adjust this value from 0.0 to 1.0
-            resolution: 256,
-          });
-
-          // Store the layer in the ref
-          layerRef.current = newLayer;
-          // Add the layer to the map
-          layerRef.current.addTo(map);
-
-          // map.fitBounds(layerRef.current.getBounds()); // This line remains commented out
-        });
-      });
-
-    // 4. UPDATE CLEANUP FUNCTION to use the ref
-    return () => {
-      if (layerRef.current) {
-        map.removeLayer(layerRef.current);
-      }
-    };
-  }, [map, url]);
-
-  return null;
-};
-
 
 // Icon workaround
 delete L.Icon.Default.prototype._getIconUrl;
@@ -67,7 +24,7 @@ const tileLayers = {
   },
   satellite: {
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: 'Tiles &copy; Esri &mdash; i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    attribution: '&copy; Esri, Maxar, Earthstar Geographics, and the GIS User Community'
   }
 };
 
@@ -158,15 +115,15 @@ export default function Map() {
           onClick={toggleLulcView}
           className="map-control-button lulc-toggle-button"
           title={showLulc ? "Hide LULC Layer" : "Show LULC Layer"}
-          style={{ backgroundColor: showLulc ? '#cce5ff' : 'white' }}
+          style={{ backgroundColor: showLulc ? '#6aa5e4ff' : 'white' }}
         >
           <span className="toggle-text text-black">LULC</span>
         </button>
       </div>
 
       <MapContainer 
-        center={[23.6850, 90.3563]}
-        zoom={7}
+        center={[23.7808405, 90.419689]}
+        zoom={12}
         style={{ height: '100vh', width: '100%' }}
       >
         {mapView === 'default' ? (
@@ -174,8 +131,14 @@ export default function Map() {
         ) : (
           <TileLayer url={tileLayers.satellite.url} attribution={tileLayers.satellite.attribution} />
         )}
-        
-        {showLulc && <GeoTiffLayer url="/dhaka_test_gt.tif" />}
+        {showLulc && (
+          <TileLayer
+            url="/dhaka_lulc_tiles/{z}/{x}/{y}.png"
+            tms={true} // IMPORTANT: gdal2tiles uses the TMS scheme
+            opacity={0.7}
+            attribution="LULC Dhaka"
+          />
+        )}
         
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />
