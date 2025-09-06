@@ -43,7 +43,7 @@ REM --- Process Meadow (255, 255, 0) ---
 echo Processing Meadow...
 gdal_calc.py -A %INPUT_FILE% --A_band=1 -B %INPUT_FILE% --B_band=2 -C %INPUT_FILE% --C_band=3 --outfile=temp_mask.tif --calc="255*((A==255)*(B==255)*(C==0))" --NoDataValue=0
 gdal_merge.py -separate -o meadow_rgba.tif %INPUT_FILE% temp_mask.tif
-gdal2tribes.py --zoom=8-18 meadow_rgba.tif meadow_tiles
+gdal2tiles.py --zoom=8-18 meadow_rgba.tif meadow_tiles
 echo.
 
 REM --- Cleanup intermediate files ---

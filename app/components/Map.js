@@ -180,8 +180,8 @@ export default function Map() {
         {activeLulcLayer === 'farmland' && <TileLayer url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Farmland" />}
         {activeLulcLayer === 'water' && <TileLayer url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Water" />}
         {activeLulcLayer === 'forest' && <TileLayer url="/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Forest" />}
-        {/* {activeLulcLayer === 'built-up' && <TileLayer url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Built-Up" />}
-        {activeLulcLayer === 'meadow' && <TileLayer url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Meadow" />} */}
+        {activeLulcLayer === 'built-up' && <TileLayer url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Built-Up" />}
+        {activeLulcLayer === 'meadow' && <TileLayer url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} attribution="LULC Meadow" />}
         
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />
