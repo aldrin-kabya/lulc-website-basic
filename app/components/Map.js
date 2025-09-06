@@ -1,8 +1,8 @@
 'use client';
 
 // 1. IMPORT useRef ALONG WITH THE OTHERS
-import { useState, useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, FeatureGroup, useMap } from 'react-leaflet';
+import { useState, useRef, useEffect} from 'react';
+import { MapContainer, TileLayer, FeatureGroup, useMap, ImageOverlay } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
@@ -15,6 +15,103 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
+
+// --- UPDATED COMPONENT: ClippedLulcOverlay ---
+// This component handles the complex logic of creating a clipped overlay.
+const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
+  const map = useMap();
+  const [imageUrl, setImageUrl] = useState(null);
+
+  useEffect(() => {
+    if (!bounds || !activeLayer) {
+      setImageUrl(null);
+      return;
+    }
+
+    const tileUrls = {
+      'all': '/dhaka_lulc_tiles/{z}/{x}/{y}.png',
+      'farmland': '/farmland_tiles/{z}/{x}/{y}.png',
+      'water': '/water_tiles/{z}/{x}/{y}.png',
+      'forest': '/forest_tiles/{z}/{x}/{y}.png',
+      'built-up': '/built-up_tiles/{z}/{x}/{y}.png',
+      'meadow': '/meadow_tiles/{z}/{x}/{y}.png'
+    };
+    
+    const tileUrlTemplate = tileUrls[activeLayer];
+    if (!tileUrlTemplate) return;
+
+    const generateOverlayImage = async () => {
+      const zoom = map.getZoom();
+      const TILE_SIZE = 256;
+      
+      const northWestPoint = map.project(bounds.getNorthWest(), zoom);
+      const southEastPoint = map.project(bounds.getSouthEast(), zoom);
+
+      const canvasWidth = southEastPoint.x - northWestPoint.x;
+      const canvasHeight = southEastPoint.y - northWestPoint.y;
+
+      const minTileX = Math.floor(northWestPoint.x / TILE_SIZE);
+      const maxTileX = Math.floor(southEastPoint.x / TILE_SIZE);
+      const minTileY = Math.floor(northWestPoint.y / TILE_SIZE);
+      const maxTileY = Math.floor(southEastPoint.y / TILE_SIZE);
+      
+      const tilesToLoad = [];
+      for (let x = minTileX; x <= maxTileX; x++) {
+        for (let y = minTileY; y <= maxTileY; y++) {
+          // Convert the Leaflet (XYZ) y-coordinate to the TMS y-coordinate
+          const tmsY = Math.pow(2, zoom) - 1 - y;
+          
+          // Use the corrected tmsY in the URL
+          const url = tileUrlTemplate.replace('{z}', zoom).replace('{x}', x).replace('{y}', tmsY);
+          
+          tilesToLoad.push({ url, x, y });
+        }
+      }
+
+      const imagePromises = tilesToLoad.map(tile => new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => resolve({ img, tile });
+        img.onerror = () => resolve(null);
+        img.src = tile.url;
+      }));
+
+      const loadedImages = await Promise.all(imagePromises);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      const ctx = canvas.getContext('2d');
+      
+      loadedImages.forEach(loaded => {
+        if (loaded) {
+          const { img, tile } = loaded;
+          const drawX = (tile.x * TILE_SIZE) - northWestPoint.x;
+          const drawY = (tile.y * TILE_SIZE) - northWestPoint.y;
+          ctx.drawImage(img, drawX, drawY, TILE_SIZE, TILE_SIZE);
+        }
+      });
+      
+      setImageUrl(canvas.toDataURL());
+    };
+
+    generateOverlayImage();
+
+  }, [bounds, activeLayer, map]);
+
+  if (!imageUrl || !bounds) {
+    return null;
+  }
+  
+  return (
+    <ImageOverlay
+      url={imageUrl}
+      bounds={bounds}
+      opacity={0.7}
+      zIndex={1000}
+    />
+  );
+};
 
 // Tile Layer URLs and Attributions
 const tileLayers = {
@@ -85,19 +182,17 @@ export default function Map() {
 
   const handleDrawCreated = (e) => {
     const layer = e.layer;
-    if (featureGroupRef.current) featureGroupRef.current.clearLayers();
+    if (featureGroupRef.current) {
+      featureGroupRef.current.clearLayers();
+    }
     featureGroupRef.current.addLayer(layer);
-    const drawnBounds = layer.getBounds();
-    const newBounds = {
-      topLeft: { lat: drawnBounds.getNorthWest().lat, lng: drawnBounds.getNorthWest().lng },
-      bottomRight: { lat: drawnBounds.getSouthEast().lat, lng: drawnBounds.getSouthEast().lng },
-    };
-    setBounds(newBounds);
+    setBounds(layer.getBounds()); // Set the bounds state, which will trigger the ClippedLulcOverlay
   };
 
   const clearSelection = () => {
     if (featureGroupRef.current) featureGroupRef.current.clearLayers();
     setBounds(null);
+    setActiveLulcLayer(null); 
   };
 
   const toggleMapView = () => {
@@ -123,11 +218,13 @@ export default function Map() {
         <div className="info-box">
           <h3>Selected Area Coordinates</h3>
           <div>
-            <p><strong>Top Left:</strong> {bounds.topLeft.lat.toFixed(4)}, {bounds.topLeft.lng.toFixed(4)}</p>
-            <p><strong>Bottom Right:</strong> {bounds.bottomRight.lat.toFixed(4)}, {bounds.bottomRight.lng.toFixed(4)}</p>
+            {/* --- THIS IS THE FIX --- */}
+            {/* Use Leaflet's methods to get the corner coordinates */}
+            <p><strong>Top Left:</strong> {bounds.getNorthWest().lat.toFixed(4)}, {bounds.getNorthWest().lng.toFixed(4)}</p>
+            <p><strong>Bottom Right:</strong> {bounds.getSouthEast().lat.toFixed(4)}, {bounds.getSouthEast().lng.toFixed(4)}</p>
           </div>
           <button onClick={clearSelection} className="reset-button">
-            Select New Area
+            Clear Selection
           </button>
         </div>
       )}
@@ -240,13 +337,15 @@ export default function Map() {
           />
         )}
 
-        {/* --- CONDITIONAL RENDERING BASED ON THE SINGLE STATE --- */}
-        {activeLulcLayer === 'all' && <TileLayer key="lulc-all" url="/dhaka_lulc_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC All Classes" />}
-        {activeLulcLayer === 'farmland' && <TileLayer key="lulc-farmland" url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Farmland" />}
-        {activeLulcLayer === 'water' && <TileLayer key="lulc-water" url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Water" />}
-        {activeLulcLayer === 'forest' && <TileLayer key="lulc-forest" url="/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Forest" />}
-        {activeLulcLayer === 'built-up' && <TileLayer key="lulc-built-up" url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Built-Up" />}
-        {activeLulcLayer === 'meadow' && <TileLayer key="lulc-meadow" url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Meadow" />}
+        {/* Add '&& !bounds' to each line to hide the full layer when a selection is active */}
+        {activeLulcLayer === 'all' && !bounds && <TileLayer key="lulc-all" url="/dhaka_lulc_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC All Classes" />}
+        {activeLulcLayer === 'farmland' && !bounds && <TileLayer key="lulc-farmland" url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Farmland" />}
+        {activeLulcLayer === 'water' && !bounds && <TileLayer key="lulc-water" url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Water" />}
+        {activeLulcLayer === 'forest' && !bounds && <TileLayer key="lulc-forest" url="/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Forest" />}
+        {activeLulcLayer === 'built-up' && !bounds && <TileLayer key="lulc-built-up" url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Built-Up" />}
+        {activeLulcLayer === 'meadow' && !bounds && <TileLayer key="lulc-meadow" url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Meadow" />}
+
+        <ClippedLulcOverlay bounds={bounds} activeLayer={activeLulcLayer} />
         
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />

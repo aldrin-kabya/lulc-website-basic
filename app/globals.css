@@ -21,7 +21,7 @@ body, html, #__next {
   padding: 18px;
   border-radius: 25px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  z-index: 1000; /* Ensure it's on top of the map */
+  z-index: 10001; /* Ensure it's on top of the the clipped overlay */
   font-size: 14px;
   line-height: 1.6;
 }
