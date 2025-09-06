@@ -221,3 +221,40 @@ body, html, #__next {
   color: #333;
   text-shadow: 3px 3px 2px rgba(255, 255, 255, 0.7);
 }
+
+
+/* --- UPDATED STYLES FOR YEAR SELECTOR --- */
+
+/* The container for the dropdown */
+.year-selector-container {
+  position: absolute;
+  top: 12px;
+  left: 60px; /* Using your new position */
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 5px 10px; /* Added more horizontal padding for the label */
+  border-radius: 20px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  
+  /* ADD THESE LINES to align the label and dropdown */
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Adds space between "Year" and the dropdown */
+}
+
+/* NEW: Style for the "Year" text label */
+.year-selector-label {
+  color: #5a5a5a;
+  font-weight: 500;
+  font-size: 13.5px;
+  padding-bottom: 2px;
+}
+
+/* The dropdown (<select>) element itself (no changes needed) */
+.year-selector {
+  border: 1px solid #ccc;
+  border-radius: 18px;
+  padding: 6px 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
