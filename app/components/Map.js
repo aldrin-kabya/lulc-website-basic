@@ -16,6 +16,56 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
+// --- NEW DATA SOURCE FOR THE LEGEND ---
+const LULC_CLASSES = [
+  { name: 'Farmland', color: 'rgb(0, 255, 0)' },
+  { name: 'Water', color: 'rgb(0, 0, 255)' },
+  { name: 'Forest', color: 'rgb(0, 255, 255)' },
+  { name: 'Built-Up', color: 'rgb(255, 0, 0)' },
+  { name: 'Meadow', color: 'rgb(255, 255, 0)' }
+];
+
+// --- NEW, MORE ADVANCED LEGEND CONTROL COMPONENT ---
+const LegendControl = ({ showControl }) => {
+  // This component manages its own visibility state
+  const [isLegendVisible, setIsLegendVisible] = useState(false);
+
+  // This effect ensures that if the LULC layer is turned off globally,
+  // the legend resets to its hidden state.
+  useEffect(() => {
+    if (!showControl) {
+      setIsLegendVisible(false);
+    }
+  }, [showControl]);
+
+  // Don't render anything if no LULC layer is active
+  if (!showControl) {
+    return null;
+  }
+
+  // If the legend is visible, show it.
+  if (isLegendVisible) {
+    return (
+      <div className="lulc-legend" onClick={() => setIsLegendVisible(false)}>
+        {LULC_CLASSES.map(item => (
+          <div key={item.name} className="legend-item">
+            <span className="legend-color-box" style={{ backgroundColor: item.color }}></span>
+            <span className="legend-label">{item.name}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Otherwise, show the button to reveal the legend.
+  return (
+    <button className="show-legend-button" onClick={() => setIsLegendVisible(true)}>
+      Show legend
+    </button>
+  );
+};
+
+
 // --- UPDATED COMPONENT: ClippedLulcOverlay ---
 // This component handles the complex logic of creating a clipped overlay.
 const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
@@ -214,6 +264,9 @@ export default function Map() {
 
   return (
     <div>
+      {/* It will appear if the "Show legend" button is clicked */}
+      <LegendControl showControl={activeLulcLayer === 'all'} />
+
       {bounds && (
         <div className="info-box">
           <h3>Selected Area Coordinates</h3>

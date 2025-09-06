@@ -17,8 +17,8 @@ body, html, #__next {
   position: absolute;
   top: 10px;
   right: 10px;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 18px;
+  background-color: rgba(255, 255, 255, 1);
+  padding: 16px;
   border-radius: 25px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   z-index: 10001; /* Ensure it's on top of the the clipped overlay */
@@ -68,16 +68,17 @@ body, html, #__next {
   margin-top: 10px;
   padding: 6px 10px;
   width: 100%;
-  background-color: #007bff;
+  background-color: #007b8b;
   color: white;
   border: none;
   border-radius: 20px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 14px;
 }
 
 .reset-button:hover {
-  background-color: #0056b3;
+  background-color: #006977;
 }
 
 
@@ -231,7 +232,7 @@ body, html, #__next {
   top: 12px;
   left: 60px; /* Using your new position */
   z-index: 1000;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 1);
   padding: 5px 10px; /* Added more horizontal padding for the label */
   border-radius: 20px;
   box-shadow: 0 1px 5px rgba(0,0,0,0.4);
@@ -257,4 +258,74 @@ body, html, #__next {
   padding: 6px 8px;
   font-weight: 500;
   cursor: pointer;
+}
+
+
+/* --- NEW STYLES FOR LULC LEGEND --- */
+
+/* The main container for the legend */
+.lulc-legend {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%); /* The standard trick for horizontal centering */
+  z-index: 1001; /* Make sure it's on top of map but below other UI if needed */
+  
+  background-color: rgba(255, 255, 255, 1);
+  padding: 9px 25px;
+  border-radius: 20px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  
+  /* Use Flexbox for the horizontal layout */
+  display: flex;
+  gap: 20px; /* Space between each legend item */
+}
+
+/* A single item in the legend (color box + text) */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Space between the color box and its label */
+}
+
+/* The colored square */
+.legend-color-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 20px;
+  border: 2px solid #1f1f1f;
+}
+
+/* The text label for the color */
+.legend-label {
+  font-size: 13px;
+  color: #1f1f1f;
+  font-weight: 500;
+}
+
+
+/* --- NEW STYLE FOR THE BUTTON --- */
+.show-legend-button {
+  /* Position it in the same place as the legend */
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  
+  /* Basic button styling */
+  padding: 8px 15px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 30px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.show-legend-button:hover {
+  background-color: #f4f4f4;
 }
