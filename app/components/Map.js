@@ -1,6 +1,5 @@
 'use client';
 
-// 1. IMPORT useRef ALONG WITH THE OTHERS
 import { useState, useRef, useEffect} from 'react';
 import { MapContainer, TileLayer, FeatureGroup, useMap, ImageOverlay } from 'react-leaflet';
 import L from 'leaflet';
@@ -8,7 +7,6 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 
 
-// Icon workaround
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -16,7 +14,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-// --- NEW DATA SOURCE FOR THE LEGEND ---
 const LULC_CLASSES = [
   { name: 'Farmland', color: 'rgb(0, 255, 0)' },
   { name: 'Water', color: 'rgb(0, 0, 255)' },
@@ -25,25 +22,20 @@ const LULC_CLASSES = [
   { name: 'Meadow', color: 'rgb(255, 255, 0)' }
 ];
 
-// --- NEW, MORE ADVANCED LEGEND CONTROL COMPONENT ---
+
 const LegendControl = ({ showControl }) => {
-  // This component manages its own visibility state
   const [isLegendVisible, setIsLegendVisible] = useState(false);
 
-  // This effect ensures that if the LULC layer is turned off globally,
-  // the legend resets to its hidden state.
   useEffect(() => {
     if (!showControl) {
       setIsLegendVisible(false);
     }
   }, [showControl]);
 
-  // Don't render anything if no LULC layer is active
   if (!showControl) {
     return null;
   }
 
-  // If the legend is visible, show it.
   if (isLegendVisible) {
     return (
       <div className="lulc-legend" onClick={() => setIsLegendVisible(false)}>
@@ -57,7 +49,6 @@ const LegendControl = ({ showControl }) => {
     );
   }
 
-  // Otherwise, show the button to reveal the legend.
   return (
     <button className="show-legend-button" onClick={() => setIsLegendVisible(true)}>
       Show legend
@@ -66,8 +57,6 @@ const LegendControl = ({ showControl }) => {
 };
 
 
-// --- UPDATED COMPONENT: ClippedLulcOverlay ---
-// This component handles the complex logic of creating a clipped overlay.
 const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
   const map = useMap();
   const [imageUrl, setImageUrl] = useState(null);
@@ -108,10 +97,8 @@ const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
       const tilesToLoad = [];
       for (let x = minTileX; x <= maxTileX; x++) {
         for (let y = minTileY; y <= maxTileY; y++) {
-          // Convert the Leaflet (XYZ) y-coordinate to the TMS y-coordinate
           const tmsY = Math.pow(2, zoom) - 1 - y;
           
-          // Use the corrected tmsY in the URL
           const url = tileUrlTemplate.replace('{z}', zoom).replace('{x}', x).replace('{y}', tmsY);
           
           tilesToLoad.push({ url, x, y });
@@ -163,7 +150,6 @@ const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
   );
 };
 
-// Tile Layer URLs and Attributions
 const tileLayers = {
   default: {
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -236,7 +222,7 @@ export default function Map() {
       featureGroupRef.current.clearLayers();
     }
     featureGroupRef.current.addLayer(layer);
-    setBounds(layer.getBounds()); // Set the bounds state, which will trigger the ClippedLulcOverlay
+    setBounds(layer.getBounds());
   };
 
   const clearSelection = () => {
@@ -264,15 +250,12 @@ export default function Map() {
 
   return (
     <div>
-      {/* It will appear if the "Show legend" button is clicked */}
       <LegendControl showControl={activeLulcLayer === 'all'} />
 
       {bounds && (
         <div className="info-box">
           <h3>Selected Area Coordinates</h3>
           <div>
-            {/* --- THIS IS THE FIX --- */}
-            {/* Use Leaflet's methods to get the corner coordinates */}
             <p><strong>Top Left:</strong> {bounds.getNorthWest().lat.toFixed(4)}, {bounds.getNorthWest().lng.toFixed(4)}</p>
             <p><strong>Bottom Right:</strong> {bounds.getSouthEast().lat.toFixed(4)}, {bounds.getSouthEast().lng.toFixed(4)}</p>
           </div>
@@ -282,9 +265,7 @@ export default function Map() {
         </div>
       )}
 
-      {/* --- UPDATED DROPDOWN MENU UI --- */}
       <div className="year-selector-container">
-        {/* 1. Add the new "Year" label */}
         <span className="year-selector-label">Year</span>
         
         <select 
@@ -292,25 +273,20 @@ export default function Map() {
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
         >
-          {/* 2. Sort the years in descending order before mapping */}
           {Object.keys(satelliteLayers)
             .sort((a, b) => b - a) 
             .map(year => (
               <option key={year} value={year}>
-                {/* 3. Remove "Satellite" text, leaving only the year */}
                 {year}
               </option>
           ))}
         </select>
       </div>
       
-      {/* --- NEW, RESTRUCTURED CONTROLS --- */}
       <div className="map-layer-controls">
-        {/* The main button that is always visible */}
         <button
           onClick={toggleMapView}
           className="map-type-button"
-          // title={mapView === 'default' ? 'Switch to Satellite View' : 'Switch to Default View'}
         >
           <div 
             className="toggle-bg"
@@ -322,12 +298,10 @@ export default function Map() {
           </div>
         </button>
         
-        {/* The panel that appears on hover */}
         <div className="layer-panel">
           <button
             onClick={() => handleLayerToggle('all')}
             className={`layer-option-button ${activeLulcLayer === 'all' ? 'active' : ''}`}
-            // title="Toggle All Classes Layer"
           >
             <img src="/all-classes-icon-2.png" alt="All Classes Layer"/>
             <span className="layer-option-text">All classes</span>
@@ -335,7 +309,6 @@ export default function Map() {
           <button
             onClick={() => handleLayerToggle('farmland')}
             className={`layer-option-button ${activeLulcLayer === 'farmland' ? 'active' : ''}`}
-            // title="Toggle Farmland Layer"
           >
             <img src="/farmland-icon.png" alt="Farmland Layer"/>
             <span className="layer-option-text">Farmland</span>
@@ -343,7 +316,6 @@ export default function Map() {
           <button
             onClick={() => handleLayerToggle('water')}
             className={`layer-option-button ${activeLulcLayer === 'water' ? 'active' : ''}`}
-            // title="Toggle Water Layer"
           >
             <img src="/water-icon.png" alt="Water Layer"/>
             <span className="layer-option-text">Water</span>
@@ -351,7 +323,6 @@ export default function Map() {
           <button
             onClick={() => handleLayerToggle('forest')}
             className={`layer-option-button ${activeLulcLayer === 'forest' ? 'active' : ''}`}
-            // title="Toggle Forest Layer"
           >
             <img src="/forest-icon.png" alt="Forest Layer"/>
             <span className="layer-option-text">Forest</span>
@@ -359,7 +330,6 @@ export default function Map() {
           <button
             onClick={() => handleLayerToggle('built-up')}
             className={`layer-option-button ${activeLulcLayer === 'built-up' ? 'active' : ''}`}
-            // title="Toggle Built-Up Layer"
           >
             <img src="/built-up-icon.png" alt="Built-Up Layer"/>
             <span className="layer-option-text">Built-Up</span>
@@ -367,7 +337,6 @@ export default function Map() {
           <button
             onClick={() => handleLayerToggle('meadow')}
             className={`layer-option-button ${activeLulcLayer === 'meadow' ? 'active' : ''}`}
-            // title="Toggle Meadow Layer"
           >
             <img src="/meadow-icon.png" alt="Meadow Layer"/>
             <span className="layer-option-text">Meadow</span>
@@ -384,13 +353,12 @@ export default function Map() {
           <TileLayer url={tileLayers.default.url} attribution={tileLayers.default.attribution} />
         ) : (
           <TileLayer
-            key={selectedYear} // Add a key to force React to re-render the layer
+            key={selectedYear}
             url={satelliteLayers[selectedYear].url}
             attribution={satelliteLayers[selectedYear].attribution}
           />
         )}
 
-        {/* Add '&& !bounds' to each line to hide the full layer when a selection is active */}
         {activeLulcLayer === 'all' && !bounds && <TileLayer key="lulc-all" url="/dhaka_lulc_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC All Classes" />}
         {activeLulcLayer === 'farmland' && !bounds && <TileLayer key="lulc-farmland" url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Farmland" />}
         {activeLulcLayer === 'water' && !bounds && <TileLayer key="lulc-water" url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Water" />}
