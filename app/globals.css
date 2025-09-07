@@ -1,7 +1,41 @@
+/**
+ * =============================================================================
+ * LULC Map Application - Global Stylesheet
+ * =============================================================================
+ *
+ * This file contains all global styles, including base resets, third-party
+ * library imports, and custom component styles for the map interface.
+ *
+ * TABLE OF CONTENTS
+ * -----------------
+ * 1. Third-Party Imports & Base Styles
+ * 2. Map Overlays & UI Controls
+ *    - Coordinate Info Box
+ *    - Custom Draw & Reset Buttons
+ * 3. Map Layer Control Panel
+ *    - Main Container & Hover Logic
+ *    - Layer Type Button (Satellite/Default)
+ *    - Layer Option Buttons (LULC Classes)
+ * 4. Year Selector Dropdown
+ * 5. LULC Legend
+ *
+ */
+
+/* =============================================================================
+ * 1. Third-Party Imports & Base Styles
+ * ============================================================================= */
+
+/**
+ * Import essential stylesheets from the Leaflet and Leaflet-Draw libraries.
+ * These provide the foundational styles for the map tiles and drawing tools.
+ */
 @import 'leaflet/dist/leaflet.css';
 @import 'leaflet-draw/dist/leaflet.draw.css';
 
-/* Basic reset to make the map full-screen */
+/**
+ * A basic reset to ensure the application fills the entire viewport.
+ * Establishes a consistent, system-based font stack.
+ */
 body, html, #__next {
   margin: 0;
   padding: 0;
@@ -11,7 +45,15 @@ body, html, #__next {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
-/* Style for the information box that displays coordinates */
+
+/* =============================================================================
+ * 2. Map Overlays & UI Controls
+ * ============================================================================= */
+
+/**
+ * Styles for the information box that displays the coordinates of a
+ * user-drawn selection. Positioned in the top-right corner.
+ */
 .info-box {
   position: absolute;
   top: 10px;
@@ -20,7 +62,8 @@ body, html, #__next {
   padding: 16px;
   border-radius: 25px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  z-index: 10001; /* Ensure it's on top of the the clipped overlay */
+  /* High z-index to ensure it appears above all map layers, including overlays. */
+  z-index: 10001;
   font-size: 14px;
   line-height: 1.6;
 }
@@ -34,14 +77,19 @@ body, html, #__next {
   margin: 0;
 }
 
-/* Fix for Leaflet Draw icons not appearing correctly with Next.js */
+/**
+ * A necessary override to fix a common issue where Leaflet-Draw's icon
+ * spritesheet is not correctly resolved by modern bundlers like Webpack.
+ */
 .leaflet-draw-toolbar a {
   background-image: url('/spritesheet.png');
   background-repeat: no-repeat;
 }
 
-
-/* Style for our custom button that starts the drawing process */
+/**
+ * Styles for the primary "Select Area" button, allowing users to
+ * initiate the drawing mode.
+ */
 .custom-draw-button {
   position: absolute;
   top: 15px;
@@ -62,7 +110,9 @@ body, html, #__next {
   background-color: #f4f4f4;
 }
 
-/* Style for the button inside the info-box to reset the selection */
+/**
+ * Styles for the "Clear Selection" button located inside the info box.
+ */
 .reset-button {
   margin-top: 10px;
   padding: 6px 10px;
@@ -81,19 +131,28 @@ body, html, #__next {
 }
 
 
-/* --- STYLES FOR THE HOVER MENU --- */
+/* =============================================================================
+ * 3. Map Layer Control Panel
+ * ============================================================================= */
 
-/* 1. The main wrapper for the entire control unit (button + panel) */
+/**
+ * The main wrapper for the layer control UI. This container uses Flexbox to
+ * align the main button and the hover-reveal panel. It is the target for the
+ * :hover pseudo-class to trigger the panel's visibility.
+ */
 .map-layer-controls {
   position: absolute;
   bottom: 20px;
   left: 75px;
   z-index: 1000;
   display: flex;
-  align-items: center; /* Align items to the bottom */
+  align-items: center;
 }
 
-/* 2. The main Satellite/Default button that is always visible */
+/**
+ * The primary, always-visible button for toggling the base map type
+ * (e.g., Satellite/Default). It has a higher z-index to overlap the panel.
+ */
 .map-type-button {
   width: 80px;
   height: 80px;
@@ -105,7 +164,6 @@ body, html, #__next {
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   cursor: pointer;
   transition: border-color 0.2s ease-in-out;
-  /* Ensure it sits on top of the panel */
   z-index: 2; 
 }
 
@@ -113,7 +171,11 @@ body, html, #__next {
   border-color: #000;
 }
 
-/* 3. The panel that appears on hover */
+/**
+ * The panel containing individual LULC layer toggles. It is hidden by
+ * default (opacity: 0) and appears on hover of the parent container.
+ * A transition delay is added for a more subtle animation.
+ */
 .layer-panel {
   display: flex;
   align-items: center; 
@@ -121,60 +183,68 @@ body, html, #__next {
   padding: 4px;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  
-  /* Start slightly to the left of the main button */
   margin-left: 10px;
-  padding-left: 10px; /* Add padding to account for the overlap */
+  padding-left: 10px;
   padding-right: 10px;
 
-  /* Hide by default and set up transition */
   opacity: 0;
   transform: translateX(-10px);
-  pointer-events: none;
+  pointer-events: none; /* Disables interaction when hidden */
   transition: opacity 0.2s 0.3s, transform 0.2s 0.3s;
   z-index: 1; /* Sits behind the main button */
 }
 
-/* 4. The reveal logic: when hovering the PARENT, show the panel */
+/**
+ * Reveal the panel when the parent container is hovered.
+ */
 .map-layer-controls:hover .layer-panel {
   opacity: 1;
   transform: translateX(0);
-  pointer-events: auto;
+  pointer-events: auto; /* Enables interaction when visible */
 }
 
-/* 5. The small, individual buttons inside the panel */
+/**
+ * Styles for the individual, smaller buttons inside the layer panel.
+ * Uses a vertical Flexbox layout for the icon and text.
+ */
 .layer-option-button {
   display: flex;
-  flex-direction: column; /* Stack icon and text vertically */
+  flex-direction: column;
   align-items: center;
   gap: 2px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 4px;
-  border-radius: 8px; /* For a subtle background on hover */
+  border-radius: 8px;
 }
 
-/* On hover, highlight the image border */
+/**
+ * Hover states for the panel buttons, highlighting both the icon and text.
+ */
 .layer-option-button:hover img {
   border-color: #007b8b;
 }
 
-/* On hover, highlight the text */
 .layer-option-button:hover .layer-option-text {
   color: #007b8b;
 }
 
-/* 6. The icon image inside the small button */
+/**
+ * The icon image within a panel button. It has a transparent border by
+ * default that becomes colored on hover or when active.
+ */
 .layer-option-button img {
   width: 45px;
   height: 45px;
   border-radius: 8px;
-  border: 2px solid transparent; /* Default transparent border */
+  border: 2px solid transparent;
   transition: border-color 0.2s ease;
 }
 
-/* 7. The text label below the small icon */
+/**
+ * The text label for a panel button.
+ */
 .layer-option-text {
   font-size: 12px;
   font-weight: 500;
@@ -182,23 +252,30 @@ body, html, #__next {
   transition: color 0.2s ease;
 }
 
-/* 8. The "active" state styles, inspired by your image */
+/**
+ * The 'active' state for a panel button, applied via a class when its
+ * corresponding layer is visible on the map.
+ */
 .layer-option-button.active img {
-  border-color: #007b8b; /* Blue border on the icon */
+  border-color: #007b8b;
 }
 
 .layer-option-button.active .layer-option-text {
-  color: #007b8b; /* Blue text */
+  color: #007b8b;
   font-weight: 500;
 }
 
-/* The inner container for the background image */
+/**
+ * An inner container used within the main map-type button. This div holds
+ * the background image and allows for independent rounding of the image corners,
+ * creating an inset effect.
+ */
 .toggle-bg {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: hidden; /* Clips the background image to the rounded corners */
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -208,7 +285,11 @@ body, html, #__next {
   background-repeat: no-repeat;
 }
 
-/* Text styles */
+/**
+ * Styles for the text overlay on the main map-type button.
+ * Helper classes (.text-white, .text-black) provide contrast against
+ * different background images.
+ */
 .toggle-text {
   font-size: 11px;
   font-weight: 500;
@@ -223,25 +304,31 @@ body, html, #__next {
 }
 
 
-/* --- STYLES FOR YEAR SELECTOR --- */
+/* =============================================================================
+ * 4. Year Selector Dropdown
+ * ============================================================================= */
 
-/* The container for the dropdown */
+/**
+ * The container for the satellite year selection UI, positioned in the top-left.
+ * Uses Flexbox to align the label and the select element.
+ */
 .year-selector-container {
   position: absolute;
   top: 12px;
-  left: 60px; /* Using your new position */
+  left: 60px;
   z-index: 1000;
   background-color: rgba(255, 255, 255, 1);
-  padding: 5px 10px; /* Added more horizontal padding for the label */
+  padding: 5px 10px;
   border-radius: 20px;
   box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-  
   display: flex;
   align-items: center;
-  gap: 6px; /* Adds space between "Year" and the dropdown */
+  gap: 6px;
 }
 
-/* Style for the "Year" text label */
+/**
+ * The static "Year" text label.
+ */
 .year-selector-label {
   color: #5a5a5a;
   font-weight: 500;
@@ -249,7 +336,9 @@ body, html, #__next {
   padding-bottom: 2px;
 }
 
-/* The dropdown (<select>) element itself (no changes needed) */
+/**
+ * The HTML <select> dropdown element for choosing the year.
+ */
 .year-selector {
   border: 1px solid #ccc;
   border-radius: 18px;
@@ -259,34 +348,40 @@ body, html, #__next {
 }
 
 
-/* --- STYLES FOR LULC LEGEND --- */
+/* =============================================================================
+ * 5. LULC Legend
+ * ============================================================================= */
 
-/* The main container for the legend */
+/**
+ * The main container for the LULC legend, horizontally centered at the top
+ * of the map. It is clickable to be dismissed.
+ */
 .lulc-legend {
   position: absolute;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%); /* The standard trick for horizontal centering */
-  z-index: 1001; /* Make sure it's on top of map but below other UI if needed */
-  
+  transform: translateX(-50%);
+  z-index: 1001;
   background-color: rgba(255, 255, 255, 1);
   padding: 9px 25px;
   border-radius: 20px;
   box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-  
-  /* Use Flexbox for the horizontal layout */
   display: flex;
-  gap: 20px; /* Space between each legend item */
+  gap: 20px;
 }
 
-/* A single item in the legend (color box + text) */
+/**
+ * A single entry in the legend, containing a color swatch and a text label.
+ */
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 6px; /* Space between the color box and its label */
+  gap: 6px;
 }
 
-/* The colored square */
+/**
+ * The colored square representing an LULC class.
+ */
 .legend-color-box {
   width: 16px;
   height: 16px;
@@ -294,24 +389,25 @@ body, html, #__next {
   border: 2px solid #1f1f1f;
 }
 
-/* The text label for the color */
+/**
+ * The text label for a legend item.
+ */
 .legend-label {
   font-size: 13px;
   color: #1f1f1f;
   font-weight: 500;
 }
 
-
-/* --- STYLE FOR THE BUTTON --- */
+/**
+ * The button used to reveal the legend. It occupies the same position as the
+ * legend itself and is rendered conditionally.
+ */
 .show-legend-button {
-  /* Position it in the same place as the legend */
   position: absolute;
   top: 20px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001;
-  
-  /* Basic button styling */
   padding: 8px 15px;
   background-color: white;
   border: 1px solid #ccc;
