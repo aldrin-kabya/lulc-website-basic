@@ -6,22 +6,16 @@ import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 
-/**
- * Fix for a known issue with Leaflet icons in React frameworks.
- * This re-associates the default icon URLs for markers.
- */
+// block start: fixes a known issue with Leaflet icons in React
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
+// block end: fixes a known issue with Leaflet icons in React
 
-/**
- * Data store for Land Use Land Cover (LULC) class definitions.
- * Used to dynamically generate the map legend.
- * @type {Array<Object>}
- */
+// block start: defines LULC class names and colors for the legend
 const LULC_CLASSES = [
   { name: 'Farmland', color: 'rgb(0, 255, 0)' },
   { name: 'Water', color: 'rgb(0, 0, 255)' },
@@ -29,32 +23,27 @@ const LULC_CLASSES = [
   { name: 'Built-Up', color: 'rgb(255, 0, 0)' },
   { name: 'Meadow', color: 'rgb(255, 255, 0)' }
 ];
+// block end: defines LULC class names and colors for the legend
 
-/**
- * A stateful component to manage the display of the LULC legend.
- * It encapsulates its own visibility logic, appearing only when a specific
- * LULC layer is active and allowing the user to toggle its visibility.
- * @param {{ showControl: boolean }} props - Controls whether the component should be rendered.
- */
+// block start: component to manage the LULC legend's visibility and behavior
 const LegendControl = ({ showControl }) => {
   const [isLegendVisible, setIsLegendVisible] = useState(false);
 
-  /**
-   * Effect to synchronize the legend's visibility with the parent component's state.
-   * If the parent hides the control, the legend resets to its default hidden state.
-   */
+  // block start: effect to hide the legend if the LULC layer is turned off
   useEffect(() => {
     if (!showControl) {
       setIsLegendVisible(false);
     }
   }, [showControl]);
+  // block end: effect to hide the legend if the LULC layer is turned off
 
-  // Render nothing if the control is not meant to be shown.
+  // block start: renders nothing if the control is globally hidden
   if (!showControl) {
     return null;
   }
+  // block end: renders nothing if the control is globally hidden
 
-  // If toggled, display the full legend.
+  // block start: renders the legend panel if it is set to be visible
   if (isLegendVisible) {
     return (
       <div className="lulc-legend" onClick={() => setIsLegendVisible(false)}>
@@ -67,32 +56,35 @@ const LegendControl = ({ showControl }) => {
       </div>
     );
   }
+  // block end: renders the legend panel if it is set to be visible
 
-  // By default, show the button that reveals the legend.
+  // block start: renders the "Show legend" button by default
   return (
     <button className="show-legend-button" onClick={() => setIsLegendVisible(true)}>
       Show legend
     </button>
   );
+  // block end: renders the "Show legend" button by default
 };
+// block end: component to manage the LULC legend's visibility and behavior
 
-/**
- * A highly specialized component that renders an LULC tile layer clipped to
- * a user-drawn rectangular boundary. It fetches the required tiles, stitches them
- * together on an in-memory canvas, and displays the result as a single ImageOverlay.
- * @param {{ bounds: L.LatLngBounds | null, activeLayer: string | null }} props
- */
+// block start: component that renders an LULC layer clipped to a user-drawn rectangle
 const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
+  // block start: hooks for map access and storing the generated image URL
   const map = useMap();
   const [imageUrl, setImageUrl] = useState(null);
+  // block end: hooks for map access and storing the generated image URL
 
+  // block start: effect to generate the clipped image when inputs change
   useEffect(() => {
-    // Abort if there's no selected area or active LULC layer.
+    // block start: exits early if there is no selected area or active layer
     if (!bounds || !activeLayer) {
       setImageUrl(null);
       return;
     }
+    // block end: exits early if there is no selected area or active layer
 
+    // block start: data object mapping layer names to their tile URLs
     const tileUrls = {
       'all': '/dhaka_lulc_tiles/{z}/{x}/{y}.png',
       'farmland': '/farmland_tiles/{z}/{x}/{y}.png',
@@ -101,52 +93,53 @@ const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
       'built-up': '/built-up_tiles/{z}/{x}/{y}.png',
       'meadow': '/meadow_tiles/{z}/{x}/{y}.png'
     };
+    // block end: data object mapping layer names to their tile URLs
     
     const tileUrlTemplate = tileUrls[activeLayer];
     if (!tileUrlTemplate) return;
 
-    /**
-     * Asynchronously generates a clipped image overlay.
-     */
+    // block start: main async function to generate the overlay image
     const generateOverlayImage = async () => {
       const zoom = map.getZoom();
       const TILE_SIZE = 256;
       
-      // Project geographic bounds to pixel coordinates for the current zoom level.
+      // block start: calculates the pixel dimensions of the selected area
       const northWestPoint = map.project(bounds.getNorthWest(), zoom);
       const southEastPoint = map.project(bounds.getSouthEast(), zoom);
-
       const canvasWidth = southEastPoint.x - northWestPoint.x;
       const canvasHeight = southEastPoint.y - northWestPoint.y;
+      // block end: calculates the pixel dimensions of the selected area
 
-      // Determine the grid of tiles required to cover the selected area.
+      // block start: determines the range of map tiles needed to cover the area
       const minTileX = Math.floor(northWestPoint.x / TILE_SIZE);
       const maxTileX = Math.floor(southEastPoint.x / TILE_SIZE);
       const minTileY = Math.floor(northWestPoint.y / TILE_SIZE);
       const maxTileY = Math.floor(southEastPoint.y / TILE_SIZE);
+      // block end: determines the range of map tiles needed to cover the area
       
-      // Construct a list of tile URLs to fetch.
+      // block start: builds a list of all required tile URLs
       const tilesToLoad = [];
       for (let x = minTileX; x <= maxTileX; x++) {
         for (let y = minTileY; y <= maxTileY; y++) {
-          // Convert Leaflet's XYZ y-coordinate to the TMS y-coordinate used by gdal2tiles.
           const tmsY = Math.pow(2, zoom) - 1 - y;
           const url = tileUrlTemplate.replace('{z}', zoom).replace('{x}', x).replace('{y}', tmsY);
           tilesToLoad.push({ url, x, y });
         }
       }
+      // block end: builds a list of all required tile URLs
 
-      // Fetch all required tile images in parallel.
+      // block start: fetches all tile images in parallel for efficiency
       const imagePromises = tilesToLoad.map(tile => new Promise((resolve) => {
         const img = new Image();
         img.crossOrigin = "Anonymous";
         img.onload = () => resolve({ img, tile });
-        img.onerror = () => resolve(null); // Gracefully handle missing tiles.
+        img.onerror = () => resolve(null);
         img.src = tile.url;
       }));
       const loadedImages = await Promise.all(imagePromises);
+      // block end: fetches all tile images in parallel for efficiency
 
-      // Create an in-memory canvas to stitch the tiles together.
+      // block start: creates and draws the fetched tiles onto an in-memory canvas
       const canvas = document.createElement('canvas');
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
@@ -155,26 +148,29 @@ const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
       loadedImages.forEach(loaded => {
         if (loaded) {
           const { img, tile } = loaded;
-          // Calculate the precise drawing position for each tile on the canvas.
           const drawX = (tile.x * TILE_SIZE) - northWestPoint.x;
           const drawY = (tile.y * TILE_SIZE) - northWestPoint.y;
           ctx.drawImage(img, drawX, drawY, TILE_SIZE, TILE_SIZE);
         }
       });
+      // block end: creates and draws the fetched tiles onto an in-memory canvas
       
-      // Convert the canvas content to a Data URL to be used by ImageOverlay.
       setImageUrl(canvas.toDataURL());
     };
+    // block end: main async function to generate the overlay image
 
     generateOverlayImage();
 
   }, [bounds, activeLayer, map]);
+  // block end: effect to generate the clipped image when inputs change
 
-  // Render the overlay only when the image has been generated and bounds are set.
+  // block start: renders nothing if the image isn't ready
   if (!imageUrl || !bounds) {
     return null;
   }
+  // block end: renders nothing if the image isn't ready
   
+  // block start: renders the generated image as an overlay on the map
   return (
     <ImageOverlay
       url={imageUrl}
@@ -183,23 +179,21 @@ const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
       zIndex={1000}
     />
   );
+  // block end: renders the generated image as an overlay on the map
 };
+// block end: component that renders an LULC layer clipped to a user-drawn rectangle
 
-/**
- * Data store for base map tile layers.
- * @type {Object}
- */
+
+// block start: defines the default base map tile layer
 const tileLayers = {
   default: {
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }
 };
+// block end: defines the default base map tile layer
 
-/**
- * Data store for historical satellite imagery from the ArcGIS Wayback service.
- * @type {Object}
- */
+// block start: defines the historical satellite imagery tile layers
 const satelliteLayers = {
   '2025': {
     url: 'https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default/MapServer/tile/49999/{z}/{y}/{x}',
@@ -242,10 +236,9 @@ const satelliteLayers = {
     attribution: '&copy; Esri, Wayback (March 2015)'
   }
 };
+// block end: defines the historical satellite imagery tile layers
 
-/**
- * A simple UI component that allows the user to initiate a drawing action.
- */
+// block start: component for the custom "Select Area" button
 const CustomDrawButton = () => {
   const map = useMap();
   const startDrawing = () => new L.Draw.Rectangle(map).enable();
@@ -255,26 +248,19 @@ const CustomDrawButton = () => {
     </button>
   );
 };
+// block end: component for the custom "Select Area" button
 
-/**
- * The main Map component, serving as the primary entry point for all map-related functionality.
- */
+// block start: main Map component and application logic
 export default function Map() {
-  /** State to hold the user-drawn rectangular bounds. */
+  // block start: state management for map interactivity
   const [bounds, setBounds] = useState(null);
-  /** State to manage the active base map ('default' or 'satellite'). */
   const [mapView, setMapView] = useState('default');
-  /** State to manage the active LULC overlay layer. Null means no layer is active. */
   const [activeLulcLayer, setActiveLulcLayer] = useState(null);
-  /** State for the selected year of satellite imagery. */
   const [selectedYear, setSelectedYear] = useState('2025');
-  /** A ref to the FeatureGroup that holds drawn layers. */
   const featureGroupRef = useRef(null);
+  // block end: state management for map interactivity
 
-  /**
-   * Callback executed when a user finishes drawing a rectangle on the map.
-   * @param {L.DrawEvents.Created} e - The Leaflet Draw event.
-   */
+  // block start: handles the creation of a user-drawn rectangle
   const handleDrawCreated = (e) => {
     const layer = e.layer;
     if (featureGroupRef.current) {
@@ -283,35 +269,29 @@ export default function Map() {
     featureGroupRef.current.addLayer(layer);
     setBounds(layer.getBounds());
   };
+  // block end: handles the creation of a user-drawn rectangle
 
-  /**
-   * Resets all user selections, clearing the drawn area and any active LULC overlays.
-   */
+  // block start: clears the drawn rectangle and any active LULC layers
   const clearSelection = () => {
     if (featureGroupRef.current) featureGroupRef.current.clearLayers();
     setBounds(null);
     setActiveLulcLayer(null); 
   };
+  // block end: clears the drawn rectangle and any active LULC layers
 
-  /**
-   * Toggles between the 'default' and 'satellite' base map views.
-   */
+  // block start: toggles the base map between default and satellite views
   const toggleMapView = () => {
     setMapView(currentView => currentView === 'default' ? 'satellite' : 'default');
   };
+  // block end: toggles the base map between default and satellite views
 
-  /**
-   * Handles toggling of all LULC layers.
-   * If the clicked layer is already active, it's deactivated. Otherwise, it becomes the active layer.
-   * @param {string} layerName - The identifier for the LULC layer.
-   */
+  // block start: sets the currently active LULC layer or deactivates it
   const handleLayerToggle = (layerName) => {
     setActiveLulcLayer(currentLayer => (currentLayer === layerName ? null : layerName));
   };
+  // block end: sets the currently active LULC layer or deactivates it
 
-  /**
-   * A utility component to register Leaflet event listeners within the React ecosystem.
-   */
+  // block start: utility component to connect Leaflet draw events to React state
   const MapEvents = () => {
     const map = useMap();
     useEffect(() => {
@@ -320,13 +300,16 @@ export default function Map() {
     }, [map]);
     return null;
   };
+  // block end: utility component to connect Leaflet draw events to React state
 
-  return (
+// block start: main render method for the map and all UI components
+return (
     <div>
-      {/* Conditionally render the LULC legend control. */}
+      {/* block start: renders the LULC legend control when appropriate */}
       <LegendControl showControl={activeLulcLayer === 'all'} />
+      {/* block end: renders the LULC legend control when appropriate */}
 
-      {/* Conditionally render the info box when an area is selected. */}
+      {/* block start: renders the coordinate info box for a selected area */}
       {bounds && (
         <div className="info-box">
           <h3>Selected Area Coordinates</h3>
@@ -339,8 +322,9 @@ export default function Map() {
           </button>
         </div>
       )}
+      {/* block end: renders the coordinate info box for a selected area */}
 
-      {/* The dropdown menu for selecting satellite imagery year. */}
+      {/* block start: renders the satellite imagery year selector dropdown */}
       <div className="year-selector-container">
         <span className="year-selector-label">Year</span>
         <select 
@@ -357,9 +341,11 @@ export default function Map() {
           ))}
         </select>
       </div>
+      {/* block end: renders the satellite imagery year selector dropdown */}
       
-      {/* The main map layer control panel with hover-reveal functionality. */}
+      {/* block start: renders the main layer control panel */}
       <div className="map-layer-controls">
+        {/* block start: renders the primary base map toggle button (Satellite/Default) */}
         <button
           onClick={toggleMapView}
           className="map-type-button"
@@ -373,7 +359,9 @@ export default function Map() {
             </span>
           </div>
         </button>
+        {/* block end: renders the primary base map toggle button (Satellite/Default) */}
         
+        {/* block start: renders the hover-reveal panel with LULC class options */}
         <div className="layer-panel">
           <button
             onClick={() => handleLayerToggle('all')}
@@ -418,13 +406,17 @@ export default function Map() {
             <span className="layer-option-text">Meadow</span>
           </button>
         </div>
+        {/* block end: renders the hover-reveal panel with LULC class options */}
       </div>
+      {/* block end: renders the main layer control panel */}
 
+      {/* block start: main Leaflet map container and layers */}
       <MapContainer 
         center={[23.7808405, 90.419689]}
         zoom={12}
         style={{ height: '100vh', width: '100%' }}
       >
+        {/* block start: renders the active base map tile layer */}
         {mapView === 'default' ? (
           <TileLayer url={tileLayers.default.url} attribution={tileLayers.default.attribution} />
         ) : (
@@ -434,23 +426,30 @@ export default function Map() {
             attribution={satelliteLayers[selectedYear].attribution}
           />
         )}
+        {/* block end: renders the active base map tile layer */}
 
-        {/* Render full-screen LULC layers only when no area is selected. */}
+        {/* block start: renders full-screen LULC overlays when no area is selected */}
         {activeLulcLayer === 'all' && !bounds && <TileLayer key="lulc-all" url="/dhaka_lulc_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC All Classes" />}
         {activeLulcLayer === 'farmland' && !bounds && <TileLayer key="lulc-farmland" url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Farmland" />}
         {activeLulcLayer === 'water' && !bounds && <TileLayer key="lulc-water" url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Water" />}
         {activeLulcLayer === 'forest' && !bounds && <TileLayer key="lulc-forest" url="/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Forest" />}
         {activeLulcLayer === 'built-up' && !bounds && <TileLayer key="lulc-built-up" url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Built-Up" />}
         {activeLulcLayer === 'meadow' && !bounds && <TileLayer key="lulc-meadow" url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Meadow" />}
+        {/* block end: renders full-screen LULC overlays when no area is selected */}
 
-        {/* The clipped overlay is driven by the 'bounds' and 'activeLulcLayer' states. */}
+        {/* block start: renders the clipped LULC overlay for a selected area */}
         <ClippedLulcOverlay bounds={bounds} activeLayer={activeLulcLayer} />
+        {/* block end: renders the clipped LULC overlay for a selected area */}
         
+        {/* block start: utility components for map functionality */}
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />
-        {/* The draw button is only shown when no area is selected. */}
         {!bounds && <CustomDrawButton />}
+        {/* block end: utility components for map functionality */}
       </MapContainer>
+      {/* block end: main Leaflet map container and layers */}
     </div>
   );
+  // block end: main render method for the map and all UI components
 }
+// block end: main Map component and application logic
