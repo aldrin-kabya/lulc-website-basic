@@ -7,8 +7,6 @@ import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import 'leaflet-side-by-side';
-import 'leaflet-side-by-side/layout.css';
-import 'leaflet-side-by-side/range.css';
 // block end: library imports
 
 // block start: fixes a known issue with Leaflet icons in React
