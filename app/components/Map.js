@@ -189,7 +189,7 @@ const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
 // block end: component that renders an LULC layer clipped to a user-drawn rectangle
 
 
-// block start: new component to manage the side-by-side comparison slider
+// block start: component to manage the side-by-side comparison slider
 const CompareLayers = ({ yearA, yearB }) => {
   const map = useMap();
 
@@ -217,11 +217,11 @@ const CompareLayers = ({ yearA, yearB }) => {
       if (map.hasLayer(layerB)) map.removeLayer(layerB);
     };
     // block end: cleanup function to remove layers and control when component unmounts
-  }, [map, yearA, yearB]); // block end: re-runs effect when map or years change
+  }, [map, yearA, yearB]);
 
-  return null; // block start: this component renders directly on the map, not in React's DOM
+  return null;
 };
-// block end: new component to manage the side-by-side comparison slider
+// block end: component to manage the side-by-side comparison slider
 
 
 // block start: defines the default base map tile layer
@@ -298,11 +298,10 @@ export default function Map() {
   const [activeLulcLayer, setActiveLulcLayer] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2025');
 
-  // block start: new state for comparison mode
+  // states for comparison mode
   const [isComparing, setIsComparing] = useState(false);
   const [compareYearA, setCompareYearA] = useState('2020'); // Left side year
   const [compareYearB, setCompareYearB] = useState('2025'); // Right side year
-  // block end: new state for comparison mode
 
   const featureGroupRef = useRef(null);
   // block end: state management for map interactivity
@@ -378,7 +377,7 @@ return (
       )}
       {/* block end: renders the coordinate info box for a selected area */}
 
-      {/* block start: conditional rendering of top-left controls */}
+      {/* block start: conditional rendering of top-left date controls (year select, compare) */}
       {isComparing ? (
         // block start: renders the comparison mode controls when active
         <div className="compare-controls-container">
@@ -432,7 +431,7 @@ return (
         </>
         // block end: renders the single-view controls by default
       )}
-      {/* block end: conditional rendering of top-left controls */}
+      {/* block end: conditional rendering of top-left date controls (year select, compare)*/}
       
       {/* block start: renders the main layer control panel */}
       <div className="map-layer-controls">
