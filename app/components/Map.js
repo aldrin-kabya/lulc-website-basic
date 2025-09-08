@@ -86,12 +86,12 @@ const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
 
     // block start: data object mapping layer names to their tile URLs
     const tileUrls = {
-      'all': '/dhaka_lulc_tiles/{z}/{x}/{y}.png',
-      'farmland': '/farmland_tiles/{z}/{x}/{y}.png',
-      'water': '/water_tiles/{z}/{x}/{y}.png',
-      'forest': '/forest_tiles/{z}/{x}/{y}.png',
-      'built-up': '/built-up_tiles/{z}/{x}/{y}.png',
-      'meadow': '/meadow_tiles/{z}/{x}/{y}.png'
+      'all': '/dhaka_ground_truth_tiles/all_classes_tiles/{z}/{x}/{y}.png',
+      'farmland': '/dhaka_ground_truth_tiles/farmland_tiles/{z}/{x}/{y}.png',
+      'water': '/dhaka_ground_truth_tiles/water_tiles/{z}/{x}/{y}.png',
+      'forest': '/dhaka_ground_truth_tiles/forest_tiles/{z}/{x}/{y}.png',
+      'built-up': '/dhaka_ground_truth_tiles/built-up_tiles/{z}/{x}/{y}.png',
+      'meadow': '/dhaka_ground_truth_tiles/meadow_tiles/{z}/{x}/{y}.png'
     };
     // block end: data object mapping layer names to their tile URLs
     
@@ -429,12 +429,12 @@ return (
         {/* block end: renders the active base map tile layer */}
 
         {/* block start: renders full-screen LULC overlays when no area is selected */}
-        {activeLulcLayer === 'all' && !bounds && <TileLayer key="lulc-all" url="/dhaka_lulc_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC All Classes" />}
-        {activeLulcLayer === 'farmland' && !bounds && <TileLayer key="lulc-farmland" url="/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Farmland" />}
-        {activeLulcLayer === 'water' && !bounds && <TileLayer key="lulc-water" url="/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Water" />}
-        {activeLulcLayer === 'forest' && !bounds && <TileLayer key="lulc-forest" url="/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Forest" />}
-        {activeLulcLayer === 'built-up' && !bounds && <TileLayer key="lulc-built-up" url="/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Built-Up" />}
-        {activeLulcLayer === 'meadow' && !bounds && <TileLayer key="lulc-meadow" url="/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Meadow" />}
+        {activeLulcLayer === 'all' && !bounds && <TileLayer key="lulc-all" url="/dhaka_ground_truth_tiles/all_classes_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC All Classes" />}
+        {activeLulcLayer === 'farmland' && !bounds && <TileLayer key="lulc-farmland" url="/dhaka_ground_truth_tiles/farmland_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Farmland" />}
+        {activeLulcLayer === 'water' && !bounds && <TileLayer key="lulc-water" url="/dhaka_ground_truth_tiles/water_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Water" />}
+        {activeLulcLayer === 'forest' && !bounds && <TileLayer key="lulc-forest" url="/dhaka_ground_truth_tiles/forest_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Forest" />}
+        {activeLulcLayer === 'built-up' && !bounds && <TileLayer key="lulc-built-up" url="/dhaka_ground_truth_tiles/built-up_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Built-Up" />}
+        {activeLulcLayer === 'meadow' && !bounds && <TileLayer key="lulc-meadow" url="/dhaka_ground_truth_tiles/meadow_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC Meadow" />}
         {/* block end: renders full-screen LULC overlays when no area is selected */}
 
         {/* block start: renders the clipped LULC overlay for a selected area */}

@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "LULC Website",
+  title: "LULC Website (Mine)",
   description: "Basic prototype for the LULC website",
 };
 
