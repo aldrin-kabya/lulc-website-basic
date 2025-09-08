@@ -236,7 +236,7 @@ body, html, #__next {
 }
 
 .year-selector-label {
-  color: #5a5a5a;
+  color: #1f1f1f;
   font-weight: 500;
   font-size: 13.5px;
   padding-bottom: 2px;
@@ -307,3 +307,58 @@ body, html, #__next {
   background-color: #f4f4f4;
 }
 /* block end: styles for the LULC legend */
+
+
+/* block start: styles for the comparison mode controls */
+
+/* block start: The main container for when compare mode is ACTIVE */
+.compare-controls-container {
+  position: absolute;
+  top: 12px;
+  left: 60px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(255, 255, 255, 1);
+  padding: 5px 10px;
+  border-radius: 20px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+
+.compare-toggle-button {
+  padding: 6px 12px;
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.compare-toggle-button.exit-mode {
+  background-color: #007b8b;
+  color: white;
+  border-color: #007b8b;
+  font-weight: bold;
+}
+
+/* block end: The main container for when compare mode is ACTIVE */
+
+/* block start: style for the initial "Compare" button */
+.initial-compare-button {
+  position: absolute;
+  top: 12px;
+  left: 190px; 
+  z-index: 1000;
+  padding: 11px 16px;
+  border-radius: 25px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}
+/* block end: style for the initial "Compare" button */
+
+/* block end: styles for the comparison mode controls */
