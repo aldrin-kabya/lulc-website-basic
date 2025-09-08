@@ -1,10 +1,15 @@
 'use client';
 
+// block start: library imports
 import { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, FeatureGroup, useMap, ImageOverlay } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
+import 'leaflet-side-by-side';
+import 'leaflet-side-by-side/layout.css';
+import 'leaflet-side-by-side/range.css';
+// block end: library imports
 
 // block start: fixes a known issue with Leaflet icons in React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -184,6 +189,41 @@ const ClippedLulcOverlay = ({ bounds, activeLayer }) => {
 // block end: component that renders an LULC layer clipped to a user-drawn rectangle
 
 
+// block start: new component to manage the side-by-side comparison slider
+const CompareLayers = ({ yearA, yearB }) => {
+  const map = useMap();
+
+  // block start: effect to create, update, and remove the comparison control
+  useEffect(() => {
+    // block start: exits early if either year is not defined
+    if (!yearA || !yearB) return;
+    // block end: exits early if either year is not defined
+
+    const attributionText = `&copy; Esri, Wayback (${yearA} vs ${yearB})`;
+
+    // block start: creates two new Leaflet tile layers for the comparison
+    const layerA = L.tileLayer(satelliteLayers[yearA].url, {attribution: attributionText}).addTo(map);
+    const layerB = L.tileLayer(satelliteLayers[yearB].url, {attribution: attributionText}).addTo(map);
+    // block end: creates two new Leaflet tile layers for the comparison
+
+    // block start: creates the side-by-side control and adds it to the map
+    const sideBySideControl = L.control.sideBySide(layerA, layerB).addTo(map);
+    // block end: creates the side-by-side control and adds it to the map
+
+    // block start: cleanup function to remove layers and control when component unmounts
+    return () => {
+      map.removeControl(sideBySideControl);
+      if (map.hasLayer(layerA)) map.removeLayer(layerA);
+      if (map.hasLayer(layerB)) map.removeLayer(layerB);
+    };
+    // block end: cleanup function to remove layers and control when component unmounts
+  }, [map, yearA, yearB]); // block end: re-runs effect when map or years change
+
+  return null; // block start: this component renders directly on the map, not in React's DOM
+};
+// block end: new component to manage the side-by-side comparison slider
+
+
 // block start: defines the default base map tile layer
 const tileLayers = {
   default: {
@@ -257,6 +297,13 @@ export default function Map() {
   const [mapView, setMapView] = useState('default');
   const [activeLulcLayer, setActiveLulcLayer] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2025');
+
+  // block start: new state for comparison mode
+  const [isComparing, setIsComparing] = useState(false);
+  const [compareYearA, setCompareYearA] = useState('2020'); // Left side year
+  const [compareYearB, setCompareYearB] = useState('2025'); // Right side year
+  // block end: new state for comparison mode
+
   const featureGroupRef = useRef(null);
   // block end: state management for map interactivity
 
@@ -291,6 +338,13 @@ export default function Map() {
   };
   // block end: sets the currently active LULC layer or deactivates it
 
+  // block start: new handler to toggle comparison mode
+  const toggleCompareMode = () => {
+    setIsComparing(current => !current);
+  };
+  // block end: new handler to toggle comparison mode
+
+
   // block start: utility component to connect Leaflet draw events to React state
   const MapEvents = () => {
     const map = useMap();
@@ -324,24 +378,61 @@ return (
       )}
       {/* block end: renders the coordinate info box for a selected area */}
 
-      {/* block start: renders the satellite imagery year selector dropdown */}
-      <div className="year-selector-container">
-        <span className="year-selector-label">Year</span>
-        <select 
-          className="year-selector"
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-        >
-          {Object.keys(satelliteLayers)
-            .sort((a, b) => b - a) 
-            .map(year => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-          ))}
-        </select>
-      </div>
-      {/* block end: renders the satellite imagery year selector dropdown */}
+      {/* block start: conditional rendering of top-left controls */}
+      {isComparing ? (
+        // block start: renders the comparison mode controls when active
+        <div className="compare-controls-container">
+          <button
+            onClick={toggleCompareMode}
+            className={`compare-toggle-button ${isComparing ? 'exit-mode' : ''}`}
+          >
+            Exit
+          </button>
+          <select 
+            className="year-selector"
+            value={compareYearA}
+            onChange={(e) => setCompareYearA(e.target.value)}
+          >
+            {Object.keys(satelliteLayers).sort((a, b) => b - a).map(year => (
+              <option key={`a-${year}`} value={year}>{year}</option>
+            ))}
+          </select>
+          <select 
+            className="year-selector"
+            value={compareYearB}
+            onChange={(e) => setCompareYearB(e.target.value)}
+          >
+            {Object.keys(satelliteLayers).sort((a, b) => b - a).map(year => (
+              <option key={`b-${year}`} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        // block end: renders the comparison mode controls when active
+      ) : (
+        // block start: renders the single-view controls by default
+        <>
+          <div className="year-selector-container">
+            <span className="year-selector-label">Year</span>
+            <select 
+              className="year-selector"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+            >
+              {Object.keys(satelliteLayers).sort((a, b) => b - a).map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={toggleCompareMode}
+            className="initial-compare-button"
+          >
+            Compare
+          </button>
+        </>
+        // block end: renders the single-view controls by default
+      )}
+      {/* block end: conditional rendering of top-left controls */}
       
       {/* block start: renders the main layer control panel */}
       <div className="map-layer-controls">
@@ -416,17 +507,31 @@ return (
         zoom={12}
         style={{ height: '100vh', width: '100%' }}
       >
-        {/* block start: renders the active base map tile layer */}
-        {mapView === 'default' ? (
-          <TileLayer url={tileLayers.default.url} attribution={tileLayers.default.attribution} />
-        ) : (
-          <TileLayer
-            key={selectedYear}
-            url={satelliteLayers[selectedYear].url}
-            attribution={satelliteLayers[selectedYear].attribution}
-          />
+        {/* block start: hide all base maps when comparing */}
+        {!isComparing && (
+          // block start: renders the active base map tile layer
+          mapView === 'default' ? (
+            <TileLayer
+              key="default-basemap"
+              url={tileLayers.default.url}
+              attribution={tileLayers.default.attribution}
+              zIndex={1}
+            />
+          ) : (
+            <TileLayer
+              key={selectedYear}
+              url={satelliteLayers[selectedYear].url}
+              attribution={satelliteLayers[selectedYear].attribution}
+              zIndex={1}
+            />
+          )
+          // block end: renders the active base map tile layer
         )}
-        {/* block end: renders the active base map tile layer */}
+        {/* block end: hide all base maps when comparing */}
+
+        {/* block start: renders the comparison slider component when active */}
+        {isComparing && <CompareLayers yearA={compareYearA} yearB={compareYearB} />}
+        {/* block end: renders the comparison slider component when active */}
 
         {/* block start: renders full-screen LULC overlays when no area is selected */}
         {activeLulcLayer === 'all' && !bounds && <TileLayer key="lulc-all" url="/dhaka_ground_truth_tiles/all_classes_tiles/{z}/{x}/{y}.png" tms={true} opacity={0.7} zIndex={2} attribution="LULC All Classes" />}
