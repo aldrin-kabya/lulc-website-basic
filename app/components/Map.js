@@ -392,9 +392,9 @@ const FullScreenStatsCalculator = ({ activeLayer, onStatsCalculated }) => {
       clearTimeout(debounceTimeout.current);
     };
     // block end: cleanup function to remove listeners when component unmounts
-  }, [map, activeLayer, onStatsCalculated]); // block end: re-runs when the active layer changes
+  }, [map, activeLayer, onStatsCalculated]); // re-runs when the active layer changes
 
-  return null; // block start: this component is invisible
+  return null; // this component is invisible
 };
 // block end: "worker" component to calculate LULC stats for the full-screen visible map area
 
@@ -520,7 +520,7 @@ const BarChart = ({ chartData, activeLayer  }) => {
       }
     },
     animation: {
-      duration: 500 // A nice fade-in animation
+      duration: 500 // Fade-in animation
     }
   };
   // block end: defines the options for chart appearance
@@ -896,13 +896,13 @@ return (
         <ClippedLulcOverlay bounds={bounds} activeLayer={activeLulcLayer} />
         {/* block end: renders the clipped LULC overlay for a selected area */}
         
-        {/* block start: renders the invisible stats calculator for a selected area */}
+        {/* block start: renders the invisible LULC stats calculator for a selected area */}
         <LulcStatsCalculator bounds={bounds} onStatsCalculated={setLulcStats} />
-        {/* block end: renders the invisible stats calculator for a selected area */}
+        {/* block end: renders the invisible LULC stats calculator for a selected area */}
 
-        {/* block start: new component to calculate stats for the full-screen view */}
+        {/* block start: renders the invisible LULC stats calculator for the full-screen view */}
         {!bounds && <FullScreenStatsCalculator activeLayer={activeLulcLayer} onStatsCalculated={setLulcStats} />}
-        {/* block end: new component to calculate stats for the full-screen view */}
+        {/* block end: renders the invisible LULC stats calculator for the full-screen view */}
 
         {/* block start: custom position for the zoom control button */}
         <ZoomControl position="bottomright" />
