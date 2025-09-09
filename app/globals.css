@@ -224,7 +224,7 @@ body, html, #__next {
 .year-selector-container {
   position: absolute;
   top: 12px;
-  left: 20px;
+  left: 30px;
   z-index: 1000;
   background-color: rgba(255, 255, 255, 1);
   padding: 5px 10px;
@@ -315,7 +315,7 @@ body, html, #__next {
 .compare-controls-container {
   position: absolute;
   top: 12px;
-  left: 20px;
+  left: 30px;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -348,7 +348,7 @@ body, html, #__next {
 .initial-compare-button {
   position: absolute;
   top: 12px;
-  left: 150px; 
+  left: 160px; 
   z-index: 1000;
   padding: 11px 16px;
   border-radius: 25px;
