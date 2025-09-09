@@ -17,8 +17,8 @@ body, html, #__next {
 /* block start: styles for the coordinate info box */
 .info-box {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  bottom: 27px;
+  right: 55px;
   background-color: rgba(255, 255, 255, 1);
   padding: 16px;
   border-radius: 25px;
@@ -48,8 +48,8 @@ body, html, #__next {
 /* block start: styles for the custom "Select Area" button */
 .custom-draw-button {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  bottom: 27px;
+  right: 55px;
   z-index: 1000;
   background-color: white;
   color: #333;
@@ -224,7 +224,7 @@ body, html, #__next {
 .year-selector-container {
   position: absolute;
   top: 12px;
-  left: 60px;
+  left: 30px;
   z-index: 1000;
   background-color: rgba(255, 255, 255, 1);
   padding: 5px 10px;
@@ -315,7 +315,7 @@ body, html, #__next {
 .compare-controls-container {
   position: absolute;
   top: 12px;
-  left: 60px;
+  left: 30px;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -348,7 +348,7 @@ body, html, #__next {
 .initial-compare-button {
   position: absolute;
   top: 12px;
-  left: 190px; 
+  left: 160px; 
   z-index: 1000;
   padding: 11px 16px;
   border-radius: 25px;
@@ -362,3 +362,25 @@ body, html, #__next {
 /* block end: style for the initial "Compare" button */
 
 /* block end: styles for the comparison mode controls */
+
+
+/* block start: styles for the LULC statistics chart panel */
+.chart-panel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10001;
+  background-color: white;
+  padding: 16px;
+  border-radius: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  width: 265px;
+}
+
+.chart-panel h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  text-align: center;
+  color: #333;
+}
+/* block end: styles for the LULC statistics chart panel */
