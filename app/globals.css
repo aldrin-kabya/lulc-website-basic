@@ -17,8 +17,8 @@ body, html, #__next {
 /* block start: styles for the coordinate info box */
 .info-box {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  bottom: 27px;
+  right: 55px;
   background-color: rgba(255, 255, 255, 1);
   padding: 16px;
   border-radius: 25px;
@@ -48,8 +48,8 @@ body, html, #__next {
 /* block start: styles for the custom "Select Area" button */
 .custom-draw-button {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  bottom: 27px;
+  right: 55px;
   z-index: 1000;
   background-color: white;
   color: #333;
