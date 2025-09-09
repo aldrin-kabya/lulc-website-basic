@@ -10,6 +10,8 @@ import 'leaflet-side-by-side';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import SearchBox from './SearchBox'; 
+import '../css/SearchBox.css';
 // block end: library imports
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, ChartDataLabels);
@@ -911,6 +913,11 @@ return (
         {/* block start: utility components for map functionality */}
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />
+
+        {/* block start: shows the search option */}
+        <SearchBox />
+        {/* block end: shows the search option */}
+
         {!bounds && <CustomDrawButton />}
         {/* block end: utility components for map functionality */}
       </MapContainer>
