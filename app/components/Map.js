@@ -2,7 +2,7 @@
 
 // block start: library imports
 import { useState, useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, FeatureGroup, useMap, ImageOverlay } from 'react-leaflet';
+import { MapContainer, TileLayer, FeatureGroup, useMap, ImageOverlay, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
@@ -503,6 +503,7 @@ return (
         center={[23.7808405, 90.419689]}
         zoom={12}
         style={{ height: '100vh', width: '100%' }}
+        zoomControl={false}
       >
         {/* block start: hide all base maps when comparing */}
         {!isComparing && (
@@ -542,6 +543,10 @@ return (
         {/* block start: renders the clipped LULC overlay for a selected area */}
         <ClippedLulcOverlay bounds={bounds} activeLayer={activeLulcLayer} />
         {/* block end: renders the clipped LULC overlay for a selected area */}
+
+        {/* block start: custom position for the zoom control button */}
+        <ZoomControl position="bottomright" />
+        {/* block end: custom position for the zoom control button */}
         
         {/* block start: utility components for map functionality */}
         <FeatureGroup ref={featureGroupRef} />
