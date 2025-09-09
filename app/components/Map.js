@@ -12,6 +12,9 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import SearchBox from './SearchBox'; 
 import '../css/SearchBox.css';
+
+import SidePanel from './SidePanel';
+import '../css/SidePanel.css';
 // block end: library imports
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, ChartDataLabels);
@@ -104,7 +107,7 @@ const ClippedLulcOverlay = ({ bounds, activeLayer, onStatsCalculated }) => {
       'meadow': '/dhaka_ground_truth_tiles/meadow_tiles/{z}/{x}/{y}.png'
     };
     // block end: data object mapping layer names to their tile URLs
-    
+
     const tileUrlTemplate = tileUrls[activeLayer];
     if (!tileUrlTemplate) return;
 
@@ -112,7 +115,7 @@ const ClippedLulcOverlay = ({ bounds, activeLayer, onStatsCalculated }) => {
     const generateOverlayImage = async () => {
       const zoom = map.getZoom();
       const TILE_SIZE = 256;
-      
+
       // block start: calculates the pixel dimensions of the selected area
       const northWestPoint = map.project(bounds.getNorthWest(), zoom);
       const southEastPoint = map.project(bounds.getSouthEast(), zoom);
@@ -126,7 +129,7 @@ const ClippedLulcOverlay = ({ bounds, activeLayer, onStatsCalculated }) => {
       const minTileY = Math.floor(northWestPoint.y / TILE_SIZE);
       const maxTileY = Math.floor(southEastPoint.y / TILE_SIZE);
       // block end: determines the range of map tiles needed to cover the area
-      
+
       // block start: builds a list of all required tile URLs
       const tilesToLoad = [];
       for (let x = minTileX; x <= maxTileX; x++) {
@@ -164,7 +167,7 @@ const ClippedLulcOverlay = ({ bounds, activeLayer, onStatsCalculated }) => {
         }
       });
       // block end: creates and draws the fetched tiles onto an in-memory canvas
-      
+
       setImageUrl(canvas.toDataURL());
     };
     // block end: main async function to generate the overlay image
@@ -179,7 +182,7 @@ const ClippedLulcOverlay = ({ bounds, activeLayer, onStatsCalculated }) => {
     return null;
   }
   // block end: renders nothing if the image isn't ready
-  
+
   // block start: renders the generated image as an overlay on the map
   return (
     <ImageOverlay
@@ -415,8 +418,8 @@ const CompareLayers = ({ yearA, yearB }) => {
     const attributionText = `&copy; Esri, Wayback (${yearA} vs ${yearB})`;
 
     // block start: creates two new Leaflet tile layers for the comparison
-    const layerA = L.tileLayer(satelliteLayers[yearA].url, {attribution: attributionText}).addTo(map);
-    const layerB = L.tileLayer(satelliteLayers[yearB].url, {attribution: attributionText}).addTo(map);
+    const layerA = L.tileLayer(satelliteLayers[yearA].url, { attribution: attributionText }).addTo(map);
+    const layerB = L.tileLayer(satelliteLayers[yearB].url, { attribution: attributionText }).addTo(map);
     // block end: creates two new Leaflet tile layers for the comparison
 
     // block start: creates the side-by-side control and adds it to the map
@@ -643,6 +646,7 @@ export default function Map() {
   const [lulcStats, setLulcStats] = useState(null);
 
   const featureGroupRef = useRef(null);
+  const [triggerDraw, setTriggerDraw] = useState(false);
   // block end: state management for map interactivity
 
   // block start: handles the creation of a user-drawn rectangle
@@ -699,13 +703,38 @@ export default function Map() {
       map.on(L.Draw.Event.CREATED, handleDrawCreated);
       return () => { map.off(L.Draw.Event.CREATED); };
     }, [map]);
+
+    useEffect(() => {
+      if (triggerDraw) {
+        new L.Draw.Rectangle(map).enable();
+        setTriggerDraw(false);
+      }
+    }, [triggerDraw, map]);
+
     return null;
   };
   // block end: utility component to connect Leaflet draw events to React state
 
-// block start: main render method for the map and all UI components
-return (
+  // block start: main render method for the map and all UI components
+  return (
     <div>
+      {/* block start: side panel component */}
+      <SidePanel
+        bounds={bounds}
+        clearSelection={clearSelection}
+        isComparing={isComparing}
+        toggleCompareMode={toggleCompareMode}
+        compareYearA={compareYearA}
+        setCompareYearA={setCompareYearA}
+        compareYearB={compareYearB}
+        setCompareYearB={setCompareYearB}
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        satelliteLayers={satelliteLayers}
+        onSelectArea={() => setTriggerDraw(true)}
+      />
+      {/* block end: side panel component */}
+
       {/* block start: renders the LULC legend control when appropriate */}
       {/* <LegendControl showControl={activeLulcLayer === 'all'} /> */}
       {/* block end: renders the LULC legend control when appropriate */}
@@ -714,8 +743,14 @@ return (
       {lulcStats && activeLulcLayer && <BarChart chartData={lulcStats} activeLayer={activeLulcLayer} />}
       {/* block end: renders the LULC statistics chart when data is available */}
 
+      {/* block start: renders the LULC statistics chart when data is available */}
+      {lulcStats && activeLulcLayer && <BarChart chartData={lulcStats} activeLayer={activeLulcLayer} />}
+      {/* block end: renders the LULC statistics chart when data is available */}
+
+      
+      {/* THIS COMPONENT HAS MOVED TO SidePanel.js */}
       {/* block start: renders the coordinate info box for a selected area */}
-      {bounds && (
+      {/* {bounds && (
         <div className="info-box">
           <h3>Selected Area Coordinates</h3>
           <div>
@@ -726,11 +761,12 @@ return (
             Clear Selection
           </button>
         </div>
-      )}
+      )}  */}
       {/* block end: renders the coordinate info box for a selected area */}
 
+      {/* THIS COMPONENT HAS MOVED TO SidePanel.js */}
       {/* block start: conditional rendering of top-left date controls (year select, compare) */}
-      {isComparing ? (
+      {/* {isComparing ? (
         // block start: renders the comparison mode controls when active
         <div className="compare-controls-container">
           <button
@@ -782,9 +818,9 @@ return (
           </button>
         </>
         // block end: renders the single-view controls by default
-      )}
+      )} */}
       {/* block end: conditional rendering of top-left date controls (year select, compare)*/}
-      
+
       {/* block start: renders the main layer control panel */}
       <div className="map-layer-controls">
         {/* block start: renders the primary base map toggle button (Satellite/Default) */}
@@ -792,7 +828,7 @@ return (
           onClick={toggleMapView}
           className="map-type-button"
         >
-          <div 
+          <div
             className="toggle-bg"
             style={{ backgroundImage: `url(${mapView === 'default' ? '/satellite-icon.png' : '/default-icon.png'})` }}
           >
@@ -802,49 +838,49 @@ return (
           </div>
         </button>
         {/* block end: renders the primary base map toggle button (Satellite/Default) */}
-        
+
         {/* block start: renders the hover-reveal panel with LULC class options */}
         <div className="layer-panel">
           <button
             onClick={() => handleLayerToggle('all')}
             className={`layer-option-button ${activeLulcLayer === 'all' ? 'active' : ''}`}
           >
-            <img src="/all-classes-icon-2.png" alt="All Classes Layer"/>
+            <img src="/all-classes-icon-2.png" alt="All Classes Layer" />
             <span className="layer-option-text">All classes</span>
           </button>
           <button
             onClick={() => handleLayerToggle('farmland')}
             className={`layer-option-button ${activeLulcLayer === 'farmland' ? 'active' : ''}`}
           >
-            <img src="/farmland-icon.png" alt="Farmland Layer"/>
+            <img src="/farmland-icon.png" alt="Farmland Layer" />
             <span className="layer-option-text">Farmland</span>
           </button>
           <button
             onClick={() => handleLayerToggle('water')}
             className={`layer-option-button ${activeLulcLayer === 'water' ? 'active' : ''}`}
           >
-            <img src="/water-icon.png" alt="Water Layer"/>
+            <img src="/water-icon.png" alt="Water Layer" />
             <span className="layer-option-text">Water</span>
           </button>
           <button
             onClick={() => handleLayerToggle('forest')}
             className={`layer-option-button ${activeLulcLayer === 'forest' ? 'active' : ''}`}
           >
-            <img src="/forest-icon.png" alt="Forest Layer"/>
+            <img src="/forest-icon.png" alt="Forest Layer" />
             <span className="layer-option-text">Forest</span>
           </button>
           <button
             onClick={() => handleLayerToggle('built-up')}
             className={`layer-option-button ${activeLulcLayer === 'built-up' ? 'active' : ''}`}
           >
-            <img src="/built-up-icon.png" alt="Built-Up Layer"/>
+            <img src="/built-up-icon.png" alt="Built-Up Layer" />
             <span className="layer-option-text">Built-Up</span>
           </button>
           <button
             onClick={() => handleLayerToggle('meadow')}
             className={`layer-option-button ${activeLulcLayer === 'meadow' ? 'active' : ''}`}
           >
-            <img src="/meadow-icon.png" alt="Meadow Layer"/>
+            <img src="/meadow-icon.png" alt="Meadow Layer" />
             <span className="layer-option-text">Meadow</span>
           </button>
         </div>
@@ -853,7 +889,7 @@ return (
       {/* block end: renders the main layer control panel */}
 
       {/* block start: main Leaflet map container and layers */}
-      <MapContainer 
+      <MapContainer
         center={[23.7808405, 90.419689]}
         zoom={12}
         style={{ height: '100vh', width: '100%' }}
@@ -914,11 +950,15 @@ return (
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />
 
+        
+
         {/* block start: shows the search option */}
         <SearchBox />
         {/* block end: shows the search option */}
 
-        {!bounds && <CustomDrawButton />}
+        {/*   THIS FUNCTION HAS MOVED TO SidePanel.js */}
+        {/* {!bounds && <CustomDrawButton />} */}
+
         {/* block end: utility components for map functionality */}
       </MapContainer>
       {/* block end: main Leaflet map container and layers */}

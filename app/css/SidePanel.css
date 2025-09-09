@@ -1,0 +1,247 @@
+/* block start: hamburger menu button styles */  
+.hamburger-button {  
+  position: fixed;  
+  top: 20px;  
+  left: 20px;  
+  z-index: 1001;  
+  background: white;  
+  border: 2px solid #ccc;  
+  border-radius: 4px;  
+  width: 40px;  
+  height: 40px;  
+  cursor: pointer;  
+  display: flex;  
+  flex-direction: column;  
+  justify-content: center;  
+  align-items: center;  
+  gap: 4px;  
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);  
+  transition: all 0.3s ease;  
+}  
+  
+.hamburger-button:hover {  
+  background: #f5f5f5;  
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);  
+}  
+  
+.hamburger-button.panel-open {  
+  left: 320px;  
+}  
+/* block end: hamburger menu button styles */  
+  
+/* block start: hamburger lines */  
+.hamburger-line {  
+  width: 20px;  
+  height: 2px;  
+  background: #333;  
+  transition: all 0.3s ease;  
+}  
+/* block end: hamburger lines */  
+  
+/* block start: side panel container */  
+.side-panel {  
+  position: fixed;  
+  top: 0;  
+  left: 0;  
+  width: 300px;  
+  height: 100vh;  
+  background: white;  
+  border-right: 2px solid #ccc;  
+  z-index: 1000;  
+  overflow-y: auto;  
+  transition: transform 0.3s ease;  
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1);  
+}  
+  
+.side-panel.open {  
+  transform: translateX(0);  
+}  
+  
+.side-panel.closed {  
+  transform: translateX(-100%);  
+}  
+/* block end: side panel container */  
+  
+/* block start: panel header styles */  
+.panel-header {  
+  padding: 20px;  
+  border-bottom: 1px solid #eee;  
+  background: #f8f9fa;  
+}  
+  
+.panel-header h3 {  
+  margin: 0;  
+  color: #333;  
+  font-size: 18px;  
+  font-weight: 600;  
+}  
+/* block end: panel header styles */  
+  
+/* block start: panel section styles */  
+.panel-section {  
+  padding: 20px;  
+  border-bottom: 1px solid #eee;  
+}  
+  
+.panel-section h4 {  
+  margin: 0 0 15px 0;  
+  color: #555;  
+  font-size: 14px;  
+  font-weight: 600;  
+  text-transform: uppercase;  
+  letter-spacing: 0.5px;  
+}  
+/* block end: panel section styles */  
+  
+/* block start: year selection styles */  
+.year-group {  
+  margin-bottom: 15px;  
+}  
+  
+.year-group label {  
+  display: block;  
+  margin-bottom: 5px;  
+  font-size: 12px;  
+  color: #666;  
+  font-weight: 500;  
+}  
+  
+.panel-year-selector {  
+  width: 100%;  
+  padding: 8px 12px;  
+  border: 1px solid #ddd;  
+  border-radius: 4px;  
+  font-size: 14px;  
+  background: white;  
+  cursor: pointer;  
+}  
+  
+.panel-year-selector:focus {  
+  outline: none;  
+  border-color: #4285f4;  
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);  
+}  
+/* block end: year selection styles */  
+  
+/* block start: comparison section styles */  
+.compare-section {  
+  display: flex;  
+  flex-direction: column;  
+  gap: 15px;  
+}  
+  
+.compare-years {  
+  display: flex;  
+  flex-direction: column;  
+  gap: 10px;  
+}  
+  
+.exit-compare-button {  
+  padding: 10px 16px;  
+  background: #ea4335;  
+  color: white;  
+  border: none;  
+  border-radius: 4px;  
+  cursor: pointer;  
+  font-size: 14px;  
+  font-weight: 500;  
+  transition: background 0.2s ease;  
+}  
+  
+.exit-compare-button:hover {  
+  background: #d33b2c;  
+}  
+/* block end: comparison section styles */  
+  
+/* block start: single view section styles */  
+.single-view-section {  
+  display: flex;  
+  flex-direction: column;  
+  gap: 15px;  
+}  
+  
+.start-compare-button {  
+  padding: 10px 16px;  
+  background: #4285f4;  
+  color: white;  
+  border: none;  
+  border-radius: 4px;  
+  cursor: pointer;  
+  font-size: 14px;  
+  font-weight: 500;  
+  transition: background 0.2s ease;  
+}  
+  
+.start-compare-button:hover {  
+  background: #3367d6;  
+}  
+/* block end: single view section styles */  
+  
+/* block start: area selection styles */  
+.panel-select-area-button {  
+  width: 100%;  
+  padding: 12px 16px;  
+  background: #34a853;  
+  color: white;  
+  border: none;  
+  border-radius: 4px;  
+  cursor: pointer;  
+  font-size: 14px;  
+  font-weight: 500;  
+  transition: background 0.2s ease;  
+}  
+  
+.panel-select-area-button:hover {  
+  background: #2d8f47;  
+}  
+/* block end: area selection styles */  
+  
+/* block start: selected area info styles */  
+.selected-area-info {  
+  background: #f8f9fa;  
+  border: 1px solid #e9ecef;  
+  border-radius: 4px;  
+  padding: 15px;  
+}  
+  
+.coordinates-info {  
+  margin-bottom: 15px;  
+}  
+  
+.coordinates-info p {  
+  margin: 2px 0;  
+  font-size: 12px;  
+  color: #666;  
+}  
+  
+.coordinates-info p strong {  
+  color: #333;  
+}  
+  
+.panel-clear-button {  
+  width: 100%;  
+  padding: 8px 16px;  
+  background: #ea4335;  
+  color: white;  
+  border: none;  
+  border-radius: 4px;  
+  cursor: pointer;  
+  font-size: 12px;  
+  font-weight: 500;  
+  transition: background 0.2s ease;  
+}  
+  
+.panel-clear-button:hover {  
+  background: #d33b2c;  
+}  
+/* block end: selected area info styles */  
+  
+/* block start: custom zoom controls */  
+.leaflet-control-zoom {  
+  position: fixed !important;  
+  bottom: 20px !important;  
+  right: 20px !important;  
+  top: auto !important;  
+  left: auto !important;  
+}  
+/* block end: custom zoom controls */  
