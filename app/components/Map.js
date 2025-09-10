@@ -513,7 +513,7 @@ const BarChart = ({ chartData, activeLayer  }) => {
     scales: {
       y: { 
         display: false, 
-        max: Math.max(...chartData.map(d => d.percentage)) + 10 // Give space for labels
+        max: Math.max(...chartData.map(d => d.percentage)) + 14 // Give space for labels
       }, 
       x: { ticks: { font: { size: 11 } },
       grid: {display: false}
