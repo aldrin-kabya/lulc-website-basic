@@ -34,46 +34,46 @@ const LULC_CLASSES = [
 // block end: defines LULC class names and colors for the legend
 
 // block start: component to manage the LULC legend's visibility and behavior
-const LegendControl = ({ showControl }) => {
-  const [isLegendVisible, setIsLegendVisible] = useState(false);
+// const LegendControl = ({ showControl }) => {
+//   const [isLegendVisible, setIsLegendVisible] = useState(false);
 
   // block start: effect to hide the legend if the LULC layer is turned off
-  useEffect(() => {
-    if (!showControl) {
-      setIsLegendVisible(false);
-    }
-  }, [showControl]);
+  // useEffect(() => {
+  //   if (!showControl) {
+  //     setIsLegendVisible(false);
+  //   }
+  // }, [showControl]);
   // block end: effect to hide the legend if the LULC layer is turned off
 
   // block start: renders nothing if the control is globally hidden
-  if (!showControl) {
-    return null;
-  }
+  // if (!showControl) {
+  //   return null;
+  // }
   // block end: renders nothing if the control is globally hidden
 
   // block start: renders the legend panel if it is set to be visible
-  if (isLegendVisible) {
-    return (
-      <div className="lulc-legend" onClick={() => setIsLegendVisible(false)}>
-        {LULC_CLASSES.map(item => (
-          <div key={item.name} className="legend-item">
-            <span className="legend-color-box" style={{ backgroundColor: item.color }}></span>
-            <span className="legend-label">{item.name}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
+  // if (isLegendVisible) {
+  //   return (
+  //     <div className="lulc-legend" onClick={() => setIsLegendVisible(false)}>
+  //       {LULC_CLASSES.map(item => (
+  //         <div key={item.name} className="legend-item">
+  //           <span className="legend-color-box" style={{ backgroundColor: item.color }}></span>
+  //           <span className="legend-label">{item.name}</span>
+  //         </div>
+  //       ))}
+  //     </div>
+  //   );
+  // }
   // block end: renders the legend panel if it is set to be visible
 
   // block start: renders the "Show legend" button by default
-  return (
-    <button className="show-legend-button" onClick={() => setIsLegendVisible(true)}>
-      Show legend
-    </button>
-  );
+  // return (
+  //   <button className="show-legend-button" onClick={() => setIsLegendVisible(true)}>
+  //     Show legend
+  //   </button>
+  // );
   // block end: renders the "Show legend" button by default
-};
+// };
 // block end: component to manage the LULC legend's visibility and behavior
 
 // block start: component that renders an LULC layer clipped to a user-drawn rectangle
@@ -705,7 +705,7 @@ export default function Map() {
 return (
     <div>
       {/* block start: renders the LULC legend control when appropriate */}
-      <LegendControl showControl={activeLulcLayer === 'all'} />
+      {/* <LegendControl showControl={activeLulcLayer === 'all'} /> */}
       {/* block end: renders the LULC legend control when appropriate */}
 
       {/* block start: renders the LULC statistics chart when data is available */}
