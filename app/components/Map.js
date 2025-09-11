@@ -1,7 +1,7 @@
 'use client';
 
 // block start: library imports
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, FeatureGroup, useMap, ImageOverlay, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -190,6 +190,41 @@ const ClippedLulcOverlay = ({ bounds, activeLayer, onStatsCalculated }) => {
   // block end: renders the generated image as an overlay on the map
 };
 // block end: component that renders an LULC layer clipped to a user-drawn rectangle
+
+
+// block start: new helper function to parse color strings into RGB arrays
+const parseColor = (color) => {
+  if (color.startsWith('rgb')) {
+    return color.match(/\d+/g).map(Number);
+  }
+  if (color === 'white') return [255, 255, 255];
+  if (color === '#222222') return [34, 34, 34];
+  return [0, 0, 0]; // Default to black
+};
+// block end: new helper function to parse color strings into RGB arrays
+
+// block start: new helper function to interpolate between two colors
+const lerpColor = (startColor, endColor, progress) => {
+  const startRGB = parseColor(startColor);
+  const endRGB = parseColor(endColor);
+  const r = Math.round(startRGB[0] + (endRGB[0] - startRGB[0]) * progress);
+  const g = Math.round(startRGB[1] + (endRGB[1] - startRGB[1]) * progress);
+  const b = Math.round(startRGB[2] + (endRGB[2] - startRGB[2]) * progress);
+  return `rgb(${r}, ${g}, ${b})`;
+};
+// block end: new helper function to interpolate between two colors
+
+// block start: new custom hook to reliably get the previous value of a prop
+const usePrevious = (value) => {
+  const ref = useRef();
+  // block start: effect runs after render to update the ref with the current value
+  useEffect(() => {
+    ref.current = value;
+  });
+  // block end: effect runs after render to update the ref with the current value
+  return ref.current;
+};
+// block end: new custom hook to reliably get the previous value of a prop
 
 
 // block start: "worker" component to calculate LULC stats for the selected area in the background
@@ -400,6 +435,138 @@ const FullScreenStatsCalculator = ({ activeLayer, onStatsCalculated }) => {
 
 
 
+// block start: new "worker" component to analyze the background color behind the chart
+const BackgroundColorAnalyzer = ({ onColorChange, mapView, selectedYear, activeLulcLayer }) => {
+  const map = useMap();
+  const debounceTimeout = useRef(null);
+
+  // block start: effect to set up map event listeners
+  useEffect(() => {
+    // block start: the core analysis logic
+    const analyzeBackgroundColor = async () => {
+      const chartPanel = document.querySelector('.chart-panel');
+      if (!chartPanel) return;
+      
+      // block start: data object for LULC tile URLs
+      const lulcTileUrls = {
+        'all': '/dhaka_ground_truth_tiles/all_classes_tiles/{z}/{x}/{y}.png',
+        'farmland': '/dhaka_ground_truth_tiles/farmland_tiles/{z}/{x}/{y}.png',
+        'water': '/dhaka_ground_truth_tiles/water_tiles/{z}/{x}/{y}.png',
+        'forest': '/dhaka_ground_truth_tiles/forest_tiles/{z}/{x}/{y}.png',
+        'built-up': '/dhaka_ground_truth_tiles/built-up_tiles/{z}/{x}/{y}.png',
+        'meadow': '/dhaka_ground_truth_tiles/meadow_tiles/{z}/{x}/{y}.png'
+      };
+      // block end: data object for LULC tile URLs
+
+      // block start: determine which layer to analyze based on priority
+      let baseUrl;
+      let isTms = false; // Flag to track if we need to flip the Y coordinate
+
+      if (activeLulcLayer && lulcTileUrls[activeLulcLayer]) {
+        // Priority 1: An LULC layer is active, so analyze it.
+        baseUrl = lulcTileUrls[activeLulcLayer];
+        isTms = true; // LULC layers use TMS
+      } else {
+        // Priority 2: No LULC layer, fall back to the base map.
+        baseUrl = mapView === 'default'
+          ? tileLayers.default.url.replace('{s}', 'a')
+          : satelliteLayers[selectedYear].url;
+      }
+      // block end: determine which layer to analyze based on priority
+
+      // block start: tile fetching and canvas drawing logic
+      const zoom = map.getZoom();
+      const TILE_SIZE = 256;
+      const rect = chartPanel.getBoundingClientRect();
+      const corner1 = map.containerPointToLatLng([rect.left, rect.top]);
+      const corner2 = map.containerPointToLatLng([rect.right, rect.bottom]);
+      const bounds = L.latLngBounds(corner1, corner2);
+      
+      const northWestPoint = map.project(bounds.getNorthWest(), zoom);
+      const southEastPoint = map.project(bounds.getSouthEast(), zoom);
+      const canvasWidth = southEastPoint.x - northWestPoint.x;
+      const canvasHeight = southEastPoint.y - northWestPoint.y;
+      if (canvasWidth <= 0 || canvasHeight <= 0) return;
+
+      const minTileX = Math.floor(northWestPoint.x / TILE_SIZE);
+      const maxTileX = Math.floor(southEastPoint.x / TILE_SIZE);
+      const minTileY = Math.floor(northWestPoint.y / TILE_SIZE);
+      const maxTileY = Math.floor(southEastPoint.y / TILE_SIZE);
+
+      const tilesToLoad = [];
+      for (let x = minTileX; x <= maxTileX; x++) {
+        for (let y = minTileY; y <= maxTileY; y++) {
+          // block start: conditionally apply TMS conversion
+          const tileY = isTms ? (Math.pow(2, zoom) - 1 - y) : y;
+          const url = baseUrl.replace('{z}', zoom).replace('{y}', tileY).replace('{x}', x);
+          // block end: conditionally apply TMS conversion
+          tilesToLoad.push({ url, x, y });
+        }
+      }
+
+      const imagePromises = tilesToLoad.map(tile => new Promise(resolve => {
+        const img = document.createElement('img');
+        img.crossOrigin = "Anonymous";
+        img.onload = () => resolve({ img, tile });
+        img.onerror = () => resolve(null);
+        img.src = tile.url;
+      }));
+
+      const loadedImages = await Promise.all(imagePromises);
+      const canvas = document.createElement('canvas');
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      
+      loadedImages.forEach(loaded => {
+        if (loaded) {
+          const { img, tile } = loaded;
+          const drawX = (tile.x * TILE_SIZE) - northWestPoint.x;
+          const drawY = (tile.y * TILE_SIZE) - northWestPoint.y;
+          ctx.drawImage(img, drawX, drawY, TILE_SIZE, TILE_SIZE);
+        }
+      });
+      // block end: tile fetching and canvas drawing logic
+
+      // block start: calculate average luminance from the generated canvas
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let totalLuminance = 0;
+      let pixelCount = 0;
+      for (let i = 0; i < imageData.length; i += 4) {
+        const r = imageData[i]; const g = imageData[i+1]; const b = imageData[i+2];
+        totalLuminance += (0.2126 * r + 0.7152 * g + 0.0722 * b);
+        pixelCount++;
+      }
+      // block end: calculate average luminance from the generated canvas
+
+      const avgLuminance = pixelCount > 0 ? totalLuminance / pixelCount : 0;
+      const textColor = avgLuminance > 128 ? '#222222' : 'white';
+      onColorChange(textColor);
+    };
+    // block end: the core analysis logic
+
+    // block start: debounced handler to run analysis after map movement stops
+    const debouncedAnalyze = () => {
+      clearTimeout(debounceTimeout.current);
+      debounceTimeout.current = setTimeout(analyzeBackgroundColor, 400);
+    };
+    // block end: debounced handler to run analysis after map movement stops
+
+    map.on('moveend zoomend', debouncedAnalyze);
+    analyzeBackgroundColor();
+
+    return () => {
+      map.off('moveend zoomend', debouncedAnalyze);
+      clearTimeout(debounceTimeout.current);
+    };
+  }, [map, onColorChange, mapView, selectedYear, activeLulcLayer]); // Re-run if active layer changes
+  
+  return null;
+};
+// block end: new "worker" component to analyze the background color behind the chart
+
+
+
 // block start: component to manage the side-by-side comparison slider
 const CompareLayers = ({ yearA, yearB }) => {
   const map = useMap();
@@ -436,17 +603,86 @@ const CompareLayers = ({ yearA, yearB }) => {
 
 
 // block start: component to render the LULC statistics bar chart
-const BarChart = ({ chartData, activeLayer  }) => {
-  // block start: defines the data structure for Chart.js
-  const data = {
+const BarChart = ({ chartData, activeLayer, textColor }) => {
+  // block start: hooks to manage the chart instance and animation
+  const chartRef = useRef(null);
+  const titleRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const previousTextColor = usePrevious(textColor) || textColor;
+  // block end: hooks to manage the chart instance and animation
+
+  // block start: new effect to set the initial color of the h3 title
+  // This runs only once or when the title element first appears.
+  useEffect(() => {
+    if (titleRef.current) {
+      titleRef.current.style.color = textColor;
+    }
+  }, [textColor]); // Run when textColor changes to set the very first color
+  // block end: new effect to set the initial color of the h3 title
+
+  // block start: effect to animate color changes smoothly
+  useEffect(() => {
+    const chart = chartRef.current;
+    const titleElement = titleRef.current; // Get the h3 element
+    if (!chart || !titleElement) return;
+
+    const startColor = previousTextColor;
+    const endColor = textColor;
+    if (startColor === endColor) return; //  if colors are already the same, do nothing
+
+    const duration = 300; // Animation duration in milliseconds
+    let startTime = null;
+
+    // block start: the animation loop function
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const elapsedTime = timestamp - startTime;
+      const progress = Math.min(elapsedTime / duration, 1);
+
+      const interpolatedColor = lerpColor(startColor, endColor, progress);
+
+      titleElement.style.color = interpolatedColor;
+
+      // block start: directly update the chart's options with the intermediate color
+      chart.options.plugins.datalabels.color = interpolatedColor;
+      chart.options.scales.x.ticks.color = interpolatedColor;
+      chart.options.plugins.datalabels.textStrokeColor = interpolatedColor === 'rgb(255, 255, 255)' 
+        ? 'rgba(0, 0, 0, 0.5)' 
+        : 'rgba(255, 255, 255, 0.5)';
+      // block end: directly update the chart's options with the intermediate color
+
+      chart.update('none'); // Update without re-animating
+
+      // block start: continue the loop if the animation is not finished
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }
+      // block end: continue the loop if the animation is not finished
+    };
+    // block end: the animation loop function
+    
+    // block start: cancel any ongoing animation and start a new one
+    cancelAnimationFrame(animationFrameRef.current);
+    animationFrameRef.current = requestAnimationFrame(animate);
+    // block end: cancel any ongoing animation and start a new one
+
+    // block start: cleanup function to cancel animation on unmount
+    return () => {
+      cancelAnimationFrame(animationFrameRef.current);
+    };
+    // block end: cleanup function to cancel animation on unmount
+  }, [textColor, previousTextColor]); // block end: this effect runs only when the target textColor prop changes
+  // block end: effect to animate color changes smoothly
+
+  // block start: defines and memoize the data structure for Chart.js
+  const data = useMemo(() => ({
     labels: chartData.map(d => d.name),
     datasets: [{
       label: '% of Land Cover',
       data: chartData.map(d => d.percentage),
       // block start: dynamically set colors to highlight the active layer
       backgroundColor: chartData.map(d => {
-        // If the current layer is 'all' or matches this data point's name, use its real color.
-        // Otherwise, use a semi-transparent gray.
+        // If the current layer is 'all' or matches this data point's name, use its real color. Otherwise, use a semi-transparent gray.
         if (activeLayer === 'all' || d.name.toLowerCase().replace(' ', '-') === activeLayer) {
           return d.color;
         }
@@ -463,11 +699,11 @@ const BarChart = ({ chartData, activeLayer  }) => {
       borderRadius: 8,
       barPercentage: 0.8,
     }]
-  };
-  // block end: defines the data structure for Chart.js
+  }), [chartData, activeLayer]);
+  // block end: defines and memoize the data structure for Chart.js
 
-  // block start: defines the options for chart appearance
-  const options = {
+  // block start: defines and memoize the options for chart appearance
+  const options = useMemo(() => ({
     responsive: true,
     plugins: {
       legend: { display: false },
@@ -497,16 +733,12 @@ const BarChart = ({ chartData, activeLayer  }) => {
         },
         // block end: sets the font style for the labels
 
-        // block start: dynamically sets the color of each label
-        color: (context) => {
-          const clsName = context.chart.data.labels[context.dataIndex];
-          const cls = LULC_CLASSES.find(c => c.name === clsName);
-          if (activeLayer === 'all' || cls.name.toLowerCase().replace(' ', '-') === activeLayer) {
-            return '#333'; // Dark color for active/all
-          }
-          return 'rgba(180, 180, 180, 0.9)'; // Greyed-out color
-        }
-        // block end: dynamically sets the color of each label
+        // block start: set initial colors, which will be animated by the effect
+        color: previousTextColor, // Use the ref for initial color
+        textStrokeColor: previousTextColor === 'white' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+        textStrokeWidth: 0,
+        // block end: set initial colors, which will be animated by the effect
+
       }
       // block end: configuration for the datalabels plugin
     },
@@ -515,15 +747,15 @@ const BarChart = ({ chartData, activeLayer  }) => {
         display: false, 
         max: Math.max(...chartData.map(d => d.percentage)) + 14 // Give space for labels
       }, 
-      x: { ticks: { font: { size: 11 } },
+      x: { ticks: { font: { size: 11 }, color: previousTextColor },
       grid: {display: false}
       }
     },
     animation: {
-      duration: 500 // Fade-in animation
+      duration: 500 // Fade-in animation for bars
     }
-  };
-  // block end: defines the options for chart appearance
+  }), [chartData, activeLayer, previousTextColor]);
+  // block end: defines and memoize the options for chart appearance
 
   // block start: custom plugin to add shadows to bars
   const barShadowPlugin = {
@@ -550,8 +782,13 @@ const BarChart = ({ chartData, activeLayer  }) => {
   // block start: main render for the chart panel
   return (
     <div className="chart-panel">
-      <h3>Land Cover Totals</h3>
-      <Bar data={data} options={options} plugins={[barShadowPlugin]} />
+      <h3 ref={titleRef}>LAND COVER TOTALS</h3>
+      <Bar 
+        data={data} 
+        options={options} 
+        plugins={[barShadowPlugin]} 
+        ref={chartRef}
+      />
     </div>
   );
   // block end: main render for the chart panel
@@ -640,6 +877,8 @@ export default function Map() {
 
   const [lulcStats, setLulcStats] = useState(null);
 
+  const [chartTextColor, setChartTextColor] = useState('white');
+
   const featureGroupRef = useRef(null);
   // block end: state management for map interactivity
 
@@ -709,7 +948,13 @@ return (
       {/* block end: renders the LULC legend control when appropriate */}
 
       {/* block start: renders the LULC statistics chart when data is available */}
-      {lulcStats && activeLulcLayer && <BarChart chartData={lulcStats} activeLayer={activeLulcLayer} />}
+      {lulcStats && activeLulcLayer && (
+        <BarChart 
+          chartData={lulcStats} 
+          activeLayer={activeLulcLayer}
+          textColor={chartTextColor} // Pass the dynamic color as a prop
+        />
+      )}
       {/* block end: renders the LULC statistics chart when data is available */}
 
       {/* block start: renders the coordinate info box for a selected area */}
@@ -899,6 +1144,15 @@ return (
         {/* block start: renders the invisible LULC stats calculator for a selected area */}
         <LulcStatsCalculator bounds={bounds} onStatsCalculated={setLulcStats} />
         {/* block end: renders the invisible LULC stats calculator for a selected area */}
+
+        {/* block start: new component to analyze background color */}
+        <BackgroundColorAnalyzer 
+          onColorChange={setChartTextColor} 
+          mapView={mapView}
+          selectedYear={selectedYear}
+          activeLulcLayer={activeLulcLayer}
+        />
+        {/* block end: new component to analyze background color */}
 
         {/* block start: renders the invisible LULC stats calculator for the full-screen view */}
         {!bounds && <FullScreenStatsCalculator activeLayer={activeLulcLayer} onStatsCalculated={setLulcStats} />}

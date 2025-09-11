@@ -370,17 +370,31 @@ body, html, #__next {
   top: 10px;
   right: 10px;
   z-index: 10001;
-  background-color: white;
-  padding: 16px;
-  border-radius: 30px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   width: 265px;
+
+  /* --- THIS IS THE GLASS EFFECT --- */
+  /* block start: make the background semi-transparent white */
+  background-color: rgba(255, 255, 255, 0.2);
+  /* block end: make the background semi-transparent white */
+  
+  /* block start: apply the blur/frost effect to the background */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* For Safari compatibility */
+  /* block end: apply the blur/frost effect to the background */
+  
+  /* block start: add a subtle border to create the "refraction" edge */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  /* block end: add a subtle border to create the "refraction" edge */
+  
+  padding: 16px;
+  border-radius: 30px; /* A slightly larger radius looks better with glass */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 .chart-panel h3 {
   margin: 0 0 8px 0;
   font-size: 16px;
   text-align: center;
-  color: #333;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Add shadow for readability */
 }
 /* block end: styles for the LULC statistics chart panel */
