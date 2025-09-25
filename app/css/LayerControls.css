@@ -1,0 +1,132 @@
+/* block start: styles for the map layer control panel */
+.map-layer-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 75px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+
+/* block start: main button for toggling base map type */
+.map-type-button {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  padding: 0;
+  background-color: white;
+  border: 3px solid transparent;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: border-color 0.2s ease-in-out;
+  z-index: 2; 
+}
+
+.map-type-button:hover {
+  border-color: #000;
+}
+/* block end: main button for toggling base map type */
+
+/* block start: hover-reveal panel for LULC layers */
+.layer-panel {
+  display: flex;
+  align-items: center; 
+  background-color: white;
+  padding: 4px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  margin-left: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+  transition: opacity 0.2s 0.3s, transform 0.2s 0.3s;
+  z-index: 1;
+}
+
+.map-layer-controls:hover .layer-panel {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+/* block end: hover-reveal panel for LULC layers */
+
+/* block start: individual LULC option buttons inside the panel */
+.layer-option-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.layer-option-button:hover img {
+  border-color: #007b8b;
+}
+
+.layer-option-button:hover .layer-option-text {
+  color: #007b8b;
+}
+
+.layer-option-button img {
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.layer-option-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5a5a5a;
+  transition: color 0.2s ease;
+}
+
+.layer-option-button.active img {
+  border-color: #007b8b;
+}
+
+.layer-option-button.active .layer-option-text {
+  color: #007b8b;
+  font-weight: 500;
+}
+/* block end: individual LULC option buttons inside the panel */
+
+/* block start: inner container for the map type button's background image */
+.toggle-bg {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+/* block end: inner container for the map type button's background image */
+
+/* block start: text overlay styles for the map type button */
+.toggle-text {
+  font-size: 11px;
+  font-weight: 500;
+}
+.text-white {
+  color: white;
+  text-shadow: 3px 3px 2px rgba(0, 0, 0, 0.7);
+}
+.text-black {
+  color: #333;
+  text-shadow: 3px 3px 2px rgba(255, 255, 255, 0.7);
+}
+/* block end: text overlay styles for the map type button */

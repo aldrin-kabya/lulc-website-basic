@@ -1,0 +1,56 @@
+/* block start: styles for the LULC legend */
+.lulc-legend {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  background-color: rgba(255, 255, 255, 1);
+  padding: 9px 25px;
+  border-radius: 20px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  display: flex;
+  gap: 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 20px;
+  border: 2px solid #1f1f1f;
+}
+
+.legend-label {
+  font-size: 13px;
+  color: #1f1f1f;
+  font-weight: 500;
+}
+
+.show-legend-button {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  padding: 8px 15px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 30px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.show-legend-button:hover {
+  background-color: #f4f4f4;
+}
+/* block end: styles for the LULC legend */
