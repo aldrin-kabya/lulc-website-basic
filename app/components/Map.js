@@ -219,12 +219,19 @@ export default function Map() {
         {/* block start: renders the invisible LULC stats calculator for the full-screen view */}
         {!bounds && <FullScreenStatsCalculator activeLayer={activeLulcLayer} onStatsCalculated={setLulcStats} />}
         {/* block end: renders the invisible LULC stats calculator for the full-screen view */}
+
+        {/* block start: custom position for the zoom control button */}
+        <ZoomControl position="bottomright" />
+        {/* block end: custom position for the zoom control button */}
         
         {/* block start: utility components for map functionality */}
         <FeatureGroup ref={featureGroupRef} />
         <MapEvents />
+
+        {/* block start: shows the search option */}
         <SearchBox />
-        <ZoomControl position="bottomright" />
+        {/* block end: shows the search option */}
+        
         {/* block end: utility components for map functionality */}
       </MapContainer>
       {/* block end: main Leaflet map container and layers */}

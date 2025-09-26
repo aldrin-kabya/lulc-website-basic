@@ -80,7 +80,7 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
       const canvas = document.createElement('canvas');
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
       
       loadedImages.forEach(loaded => {
         if (loaded) {
