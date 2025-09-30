@@ -71,6 +71,7 @@ export default function Map() {
     }
     featureGroupRef.current.addLayer(layer);
     setBounds(layer.getBounds());
+    setActiveLulcLayer('all'); // Automatically activate 'all' LULC layer on selection
   };
   // block end: handles the creation of a user-drawn rectangle
 

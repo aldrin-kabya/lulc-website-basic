@@ -12,7 +12,29 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
   const [imageUrl, setImageUrl] = useState(null);
   // block end: hooks for map access and storing the generated image URL
 
-  // block start: effect to generate the clipped image when inputs change
+  // block start: state to track the current map zoom level
+  const [currentZoom, setCurrentZoom] = useState(map.getZoom());
+  // block end: state to track the current map zoom level
+
+  // block start: effect to listen for map zoom events
+  useEffect(() => {
+    const handleZoomEnd = () => {
+      // block start: when zoom ends, update the state to trigger a re-render
+      setCurrentZoom(map.getZoom());
+      // block end: when zoom ends, update the state to trigger a re-render
+    };
+    
+    map.on('zoomend', handleZoomEnd);
+
+    // block start: cleanup function to remove the event listener
+    return () => {
+      map.off('zoomend', handleZoomEnd);
+    };
+    // block end: cleanup function to remove the event listener
+  }, [map]);
+  // block end: effect to listen for map zoom events
+
+  // block start: effect to generate the clipped image when inputs or zoom change
   useEffect(() => {
     // block start: exits early if there is no selected area or active layer
     if (!bounds || !activeLayer) {
@@ -37,7 +59,9 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
 
     // block start: main async function to generate the overlay image
     const generateOverlayImage = async () => {
-      const zoom = map.getZoom();
+      // block start: now uses the state variable for zoom, ensuring it's up-to-date
+      const zoom = currentZoom;
+      // block end: now uses the state variable for zoom, ensuring it's up-to-date
       const TILE_SIZE = 256;
 
       // block start: calculates the pixel dimensions of the selected area
@@ -98,8 +122,8 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
 
     generateOverlayImage();
 
-  }, [bounds, activeLayer, map]);
-  // block end: effect to generate the clipped image when inputs change
+  }, [bounds, activeLayer, map, currentZoom]);
+  // block end: effect to generate the clipped image when inputs or zoom change
 
   // block start: renders nothing if the image isn't ready
   if (!imageUrl || !bounds) {
