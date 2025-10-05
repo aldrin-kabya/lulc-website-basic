@@ -1,7 +1,7 @@
 @echo OFF
 echo.
 echo =======================================================
-echo LULC Class Tile Generation Script (Robust RGBA Method)
+echo LULC Class Tile Generation Script
 echo =======================================================
 echo.
 

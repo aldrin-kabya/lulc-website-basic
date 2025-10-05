@@ -10,23 +10,7 @@ import { LULC_CLASSES } from './constants';
 export default function LulcStatsCalculator({ bounds, onStatsCalculated }) {
   const map = useMap();
 
-  // block start: state to track the current map zoom level
-  const [currentZoom, setCurrentZoom] = useState(map.getZoom());
-  // block end: state to track the current map zoom level
-
-  // block start: effect to listen for map zoom events
-  useEffect(() => {
-    const handleZoomEnd = () => {
-      setCurrentZoom(map.getZoom());
-    };
-    map.on('zoomend', handleZoomEnd);
-    return () => {
-      map.off('zoomend', handleZoomEnd);
-    };
-  }, [map]);
-  // block end: effect to listen for map zoom events
-
-  // block start: effect to run the calculation when bounds or zoom change
+  // block start: effect to run the calculation when bounds change
   useEffect(() => {
     // block start: exits and clears stats if no area is selected
     if (!bounds) {
@@ -42,7 +26,7 @@ export default function LulcStatsCalculator({ bounds, onStatsCalculated }) {
     // block start: main async function to generate stats
     const generateStats = async () => {
       // block start: this part is identical to what is in ClippedLulcOverlay component
-      const zoom = currentZoom; // Use the state variable for zoom
+      const zoom = map.getZoom(); // Get the zoom level at the moment of calculation
       const TILE_SIZE = 256;
       
       const northWestPoint = map.project(bounds.getNorthWest(), zoom);
@@ -119,7 +103,7 @@ export default function LulcStatsCalculator({ bounds, onStatsCalculated }) {
     // block end: main async function to generate stats
     
     generateStats();
-  }, [bounds, map, onStatsCalculated, currentZoom]); // block end: re-runs calculation when bounds or zoom change
+  }, [bounds, map, onStatsCalculated]); // block end: re-runs calculation when bounds change
 
   return null; // this component is invisible
 }
