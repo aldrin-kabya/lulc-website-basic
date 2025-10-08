@@ -18,6 +18,15 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
     }
     // block end: exits early if there is no selected area or active layer
 
+    // block start: Create a new custom pane
+    const paneName = 'lulc-overlay-pane';
+    const pane = map.getPane(paneName);
+    if (!pane) {
+      map.createPane(paneName);
+      map.getPane(paneName).style.zIndex = 450; // Higher than overlayPane (400)
+    }
+    // block end: Create a new custom pane
+
     // block start: data object mapping layer names to their tile URLs
     const tileUrls = {
       'all': '/dhaka_ground_truth_tiles/all_classes_tiles/{z}/{x}/{y}.png',
@@ -70,7 +79,7 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
           if (!self._map) {
             return;
           }
-          // block start: PIXEL-PERFECT CLIPPING
+          // block start: Pixel-perfect clipping
           ctx.save();
 
           // block start: convert selection bounds to pixel coordinates relative to the map
@@ -94,7 +103,7 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
           ctx.drawImage(img, 0, 0, size.x, size.y);
 
           ctx.restore();
-          // block end: PIXEL-PERFECT CLIPPING
+          // block end: Pixel-perfect clipping
 
           done(null, tile); // Signal that the tile is ready
         };
@@ -115,7 +124,7 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
     // block start: create an instance of our new custom layer
     const clippedLayer = new ClippedGridLayer({
       selectionBounds: bounds,
-      zIndex: 2,
+      pane: paneName,
       opacity: 0.7,
     });
     // block end: create an instance of our new custom layer
@@ -133,6 +142,6 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
   }, [bounds, activeLayer, map]);
   // block end: effect to create, manage, and remove the custom GridLayer
 
-  return null; // block start: this component renders directly on the map, not in React's DOM
+  return null; // This component renders directly on the map, not in React's DOM
 }
 // block end: component that renders an LULC layer clipped to a user-drawn rectangle

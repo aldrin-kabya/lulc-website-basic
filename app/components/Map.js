@@ -66,13 +66,6 @@ export default function Map() {
   // block start: handles the creation of a user-drawn rectangle
   const handleDrawCreated = (e) => {
     const layer = e.layer;
-
-    // block start: Make the rectangle's fill transparent
-    layer.setStyle({
-      fillOpacity: 0 
-    });
-    // block end: Make the rectangle's fill transparent
-
     if (featureGroupRef.current) {
       featureGroupRef.current.clearLayers();
     }
