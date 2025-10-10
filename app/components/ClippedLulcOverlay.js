@@ -1,47 +1,31 @@
 'use client';
 
 // block start: library imports
-import { useState, useEffect } from 'react';
-import { useMap, ImageOverlay } from 'react-leaflet';
+import { useEffect } from 'react';
+import { useMap } from 'react-leaflet';
+import L from 'leaflet';
 // block end: library imports
 
 // block start: component that renders an LULC layer clipped to a user-drawn rectangle
 export default function ClippedLulcOverlay({ bounds, activeLayer }) {
-  // block start: hooks for map access and storing the generated image URL
   const map = useMap();
-  const [imageUrl, setImageUrl] = useState(null);
-  // block end: hooks for map access and storing the generated image URL
 
-  // block start: state to track the current map zoom level
-  const [currentZoom, setCurrentZoom] = useState(map.getZoom());
-  // block end: state to track the current map zoom level
-
-  // block start: effect to listen for map zoom events
-  useEffect(() => {
-    const handleZoomEnd = () => {
-      // block start: when zoom ends, update the state to trigger a re-render
-      setCurrentZoom(map.getZoom());
-      // block end: when zoom ends, update the state to trigger a re-render
-    };
-    
-    map.on('zoomend', handleZoomEnd);
-
-    // block start: cleanup function to remove the event listener
-    return () => {
-      map.off('zoomend', handleZoomEnd);
-    };
-    // block end: cleanup function to remove the event listener
-  }, [map]);
-  // block end: effect to listen for map zoom events
-
-  // block start: effect to generate the clipped image when inputs or zoom change
+  // block start: effect to create, manage, and remove the custom GridLayer
   useEffect(() => {
     // block start: exits early if there is no selected area or active layer
     if (!bounds || !activeLayer) {
-      setImageUrl(null);
       return;
     }
     // block end: exits early if there is no selected area or active layer
+
+    // block start: Create a new custom pane
+    const paneName = 'lulc-overlay-pane';
+    const pane = map.getPane(paneName);
+    if (!pane) {
+      map.createPane(paneName);
+      map.getPane(paneName).style.zIndex = 450; // Higher than overlayPane (400)
+    }
+    // block end: Create a new custom pane
 
     // block start: data object mapping layer names to their tile URLs
     const tileUrls = {
@@ -57,89 +41,107 @@ export default function ClippedLulcOverlay({ bounds, activeLayer }) {
     const tileUrlTemplate = tileUrls[activeLayer];
     if (!tileUrlTemplate) return;
 
-    // block start: main async function to generate the overlay image
-    const generateOverlayImage = async () => {
-      // block start: now uses the state variable for zoom, ensuring it's up-to-date
-      const zoom = currentZoom;
-      // block end: now uses the state variable for zoom, ensuring it's up-to-date
-      const TILE_SIZE = 256;
+    // block start: define the new custom GridLayer class
+    const ClippedGridLayer = L.GridLayer.extend({
+      // block start: the core function called by Leaflet for each tile
+      createTile: function (coords, done) {
+        // block start: store the 'this' context to use inside async callbacks
+        const self = this;
+        // block end: store the 'this' context to use inside async callbacks
 
-      // block start: calculates the pixel dimensions of the selected area
-      const northWestPoint = map.project(bounds.getNorthWest(), zoom);
-      const southEastPoint = map.project(bounds.getSouthEast(), zoom);
-      const canvasWidth = southEastPoint.x - northWestPoint.x;
-      const canvasHeight = southEastPoint.y - northWestPoint.y;
-      // block end: calculates the pixel dimensions of the selected area
+        // block start: create a canvas element for this specific tile
+        const tile = L.DomUtil.create('canvas', 'leaflet-tile');
+        const ctx = tile.getContext('2d');
+        const size = self.getTileSize();
+        tile.width = size.x;
+        tile.height = size.y;
+        // block end: create a canvas element for this specific tile
 
-      // block start: determines the range of map tiles needed to cover the area
-      const minTileX = Math.floor(northWestPoint.x / TILE_SIZE);
-      const maxTileX = Math.floor(southEastPoint.x / TILE_SIZE);
-      const minTileY = Math.floor(northWestPoint.y / TILE_SIZE);
-      const maxTileY = Math.floor(southEastPoint.y / TILE_SIZE);
-      // block end: determines the range of map tiles needed to cover the area
+        // block start: calculate the geographic bounds of the current tile
+        const nwPoint = coords.scaleBy(size);
+        const tileBounds = L.latLngBounds(
+          self._map.unproject(nwPoint, coords.z),
+          self._map.unproject(nwPoint.add(size), coords.z)
+        );
+        // block end: calculate the geographic bounds of the current tile
 
-      // block start: builds a list of all required tile URLs
-      const tilesToLoad = [];
-      for (let x = minTileX; x <= maxTileX; x++) {
-        for (let y = minTileY; y <= maxTileY; y++) {
-          const tmsY = Math.pow(2, zoom) - 1 - y;
-          const url = tileUrlTemplate.replace('{z}', zoom).replace('{x}', x).replace('{y}', tmsY);
-          tilesToLoad.push({ url, x, y });
+        // block start: if tile does not intersect selection, return a blank tile
+        if (!self.options.selectionBounds.intersects(tileBounds)) {
+          done(null, tile);
+          return tile;
         }
-      }
-      // block end: builds a list of all required tile URLs
+        // block end: if tile does not intersect selection, return a blank tile
 
-      // block start: fetches all tile images in parallel for efficiency
-      const imagePromises = tilesToLoad.map(tile => new Promise((resolve) => {
-        const img = document.createElement('img');
+        // block start: if it intersects, load and draw the LULC tile image
+        const img = new Image();
         img.crossOrigin = "Anonymous";
-        img.onload = () => resolve({ img, tile });
-        img.onerror = () => resolve(null);
-        img.src = tile.url;
-      }));
-      const loadedImages = await Promise.all(imagePromises);
-      // block end: fetches all tile images in parallel for efficiency
+        img.onload = () => {
+          if (!self._map) {
+            return;
+          }
+          // block start: Pixel-perfect clipping
+          ctx.save();
 
-      // block start: creates and draws the fetched tiles onto an in-memory canvas
-      const canvas = document.createElement('canvas');
-      canvas.width = canvasWidth;
-      canvas.height = canvasHeight;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      
-      loadedImages.forEach(loaded => {
-        if (loaded) {
-          const { img, tile } = loaded;
-          const drawX = (tile.x * TILE_SIZE) - northWestPoint.x;
-          const drawY = (tile.y * TILE_SIZE) - northWestPoint.y;
-          ctx.drawImage(img, drawX, drawY, TILE_SIZE, TILE_SIZE);
-        }
-      });
-      // block end: creates and draws the fetched tiles onto an in-memory canvas
-      
-      setImageUrl(canvas.toDataURL());
+          // block start: convert selection bounds to pixel coordinates relative to the map
+          const selectionNw = self._map.project(self.options.selectionBounds.getNorthWest(), coords.z);
+          const selectionSe = self._map.project(self.options.selectionBounds.getSouthEast(), coords.z);
+          // block end: convert selection bounds to pixel coordinates relative to the map
+
+          // block start: calculate the clipping rectangle's position and size relative to THIS TILE's canvas
+          const clipX = selectionNw.x - nwPoint.x;
+          const clipY = selectionNw.y - nwPoint.y;
+          const clipWidth = selectionSe.x - selectionNw.x;
+          const clipHeight = selectionSe.y - selectionNw.y;
+          // block end: calculate the clipping rectangle's position and size relative to THIS TILE's canvas
+          
+          // block start: create and apply the clipping path
+          ctx.beginPath();
+          ctx.rect(clipX, clipY, clipWidth, clipHeight);
+          ctx.clip();
+          // block end: create and apply the clipping path
+
+          ctx.drawImage(img, 0, 0, size.x, size.y);
+
+          ctx.restore();
+          // block end: Pixel-perfect clipping
+
+          done(null, tile); // Signal that the tile is ready
+        };
+        img.onerror = () => {
+          done(null, tile);
+        };
+
+        const tmsY = Math.pow(2, coords.z) - 1 - coords.y;
+        img.src = L.Util.template(tileUrlTemplate, { ...coords, y: tmsY });
+        
+        return tile;
+        // block end: if it intersects, load and draw the LULC tile image
+      }
+      // block end: the core function called by Leaflet for each tile
+    });
+    // block end: define the new custom GridLayer class
+
+    // block start: create an instance of a new custom layer
+    const clippedLayer = new ClippedGridLayer({
+      selectionBounds: bounds,
+      pane: paneName,
+      opacity: 0.7,
+    });
+    // block end: create an instance of a new custom layer
+
+    // block start: add the new layer to the map
+    clippedLayer.addTo(map);
+    // block end: add the new layer to the map
+
+    // block start: cleanup function to remove the layer when inputs change
+    return () => {
+      map.removeLayer(clippedLayer);
     };
-    // block end: main async function to generate the overlay image
+    // block end: cleanup function to remove the layer when inputs change
 
-    generateOverlayImage();
+  }, [bounds, activeLayer, map]);
+  // block end: effect to create, manage, and remove the custom GridLayer
 
-  }, [bounds, activeLayer, map, currentZoom]);
-  // block end: effect to generate the clipped image when inputs or zoom change
-
-  // block start: renders nothing if the image isn't ready
-  if (!imageUrl || !bounds) {
-    return null;
-  }
-  // block end: renders nothing if the image isn't ready
-
-  // block start: renders the generated image as an overlay on the map
-  return (
-    <ImageOverlay
-      url={imageUrl}
-      bounds={bounds}
-      opacity={0.7}
-      zIndex={1000}
-    />
-  );
-  // block end: renders the generated image as an overlay on the map
+  return null; // This component renders directly on the map, not in React's DOM
 }
 // block end: component that renders an LULC layer clipped to a user-drawn rectangle
