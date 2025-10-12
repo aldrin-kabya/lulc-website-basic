@@ -29,9 +29,9 @@ export default function LayerControls({ mapView, toggleMapView, activeLulcLayer,
           {/* block start: new container for icon and dynamic text */}
           <div className="map-type-content">
             {!isHovering && (
-              <svg className="map-type-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 16L2 11L12 6L22 11L12 16Z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
-                <path d="M2 15L12 20L22 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg className="map-type-icon-svg" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 18L3 11L12 4L21 11L12 18Z" stroke="white" strokeWidth="2.8" strokeLinejoin="miter"/>
+                <path d="M1.5 16.5L12 25L22.5 16.5" stroke="white" strokeWidth="2.8" strokeLinecap="butt" strokeLinejoin="miter"/>
               </svg>
             )}
             <span className="toggle-text">
