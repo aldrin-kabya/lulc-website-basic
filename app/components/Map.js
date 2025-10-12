@@ -213,13 +213,20 @@ export default function Map() {
         <ClippedLulcOverlay bounds={bounds} activeLayer={activeLulcLayer} />
         {/* block end: renders the clipped LULC overlay for a selected area */}
         
-        {/* block start: renders the invisible LULC stats calculator for a selected area */}
-        <LulcStatsCalculator bounds={bounds} onStatsCalculated={setLulcStats} />
-        {/* block end: renders the invisible LULC stats calculator for a selected area */}
-
-        {/* block start: renders the invisible LULC stats calculator for the full-screen view */}
-        {!bounds && <FullScreenStatsCalculator activeLayer={activeLulcLayer} onStatsCalculated={setLulcStats} />}
-        {/* block end: renders the invisible LULC stats calculator for the full-screen view */}
+        {/* block start: conditionally render the correct stats calculator based on selection */}
+        {bounds ? (
+          <LulcStatsCalculator 
+            bounds={bounds} 
+            activeLayer={activeLulcLayer} 
+            onStatsCalculated={setLulcStats} 
+          />
+        ) : (
+          <FullScreenStatsCalculator 
+            activeLayer={activeLulcLayer} 
+            onStatsCalculated={setLulcStats} 
+          />
+        )}
+        {/* block end: conditionally render the correct stats calculator based on selection */}
 
         {/* block start: custom position for the zoom control button */}
         <ZoomControl position="bottomright" />

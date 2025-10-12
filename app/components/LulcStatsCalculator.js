@@ -7,17 +7,17 @@ import { LULC_CLASSES } from './constants';
 // block end: library imports
 
 // block start: "worker" component to calculate LULC stats for the selected area in the background
-export default function LulcStatsCalculator({ bounds, onStatsCalculated }) {
+export default function LulcStatsCalculator({ bounds, activeLayer, onStatsCalculated }) {
   const map = useMap();
 
-  // block start: effect to run the calculation when bounds change
+  // block start: effect to run the calculation when bounds or activeLayer change
   useEffect(() => {
-    // block start: exits and clears stats if no area is selected
-    if (!bounds) {
+    // block start: exits and clears stats if no area is selected or no layer is active
+    if (!bounds || !activeLayer) {
       onStatsCalculated(null);
       return;
     }
-    // block end: exits and clears stats if no area is selected
+    // block end: exits and clears stats if no area is selected or no layer is active
 
     // block start: defines the URL for the 'all classes' data source
     const tileUrlTemplate = '/dhaka_ground_truth_tiles/all_classes_tiles/{z}/{x}/{y}.png';
@@ -103,7 +103,7 @@ export default function LulcStatsCalculator({ bounds, onStatsCalculated }) {
     // block end: main async function to generate stats
     
     generateStats();
-  }, [bounds, map, onStatsCalculated]); // block end: re-runs calculation when bounds change
+  }, [bounds, activeLayer, map, onStatsCalculated]); // block end: re-runs calculation when bounds or activeLayer change
 
   return null; // this component is invisible
 }
